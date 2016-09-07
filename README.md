@@ -12,12 +12,12 @@ Download: [www.fairygui.com](http://www.fairygui.com/index.php/download)
 * WYSWYG
 * Build complex UI components easily without writing any code even no programming knowledge needed.
 * No complex skin configuration. All UI elements are seperated alone and can be mixed up to build more complex components.
-* Timeline tool provided for creating transitions at the designing time.
-* Support image compression when publish project, and options for image quality provided, you can adjust options to reduce the size of the final package.
-* Support sequence frame animation building, you can even treat the animation as an image for using at the designing time.
+* Timeline tool provided for creating transitions at the design time.
+* Support image compression with options for image quality etc, you can adjust options to reduce the size of the final package when publish project.
+* Support sequence frame animation creating, you can even treat the animation as an image for using at the design time.
 * Support bitmap fonts which created by the BMFont technology, and support creating bitmap font using pictures.
 * Project files are stored separately, in order to suit the version controlling, and for project collaboration.
-* Preview functionality is provided. what you can see in the preview mode is what you'll get at the runtime.
+* Preview functionality provided. What you can see in the preview mode is what you'll get at the runtime.
 * Flexible publish strategy, support packing atlas automatically, or define many separated atlases you want.
 * I18n supported.
 * Resolution adaptive.
