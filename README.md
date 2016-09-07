@@ -1,25 +1,25 @@
 FairyGUI-PIXI
 ====
 
-FairyGUI官方QQ群：434866637
+FairyGUI官方QQ群：434866637 (Official Chat Group for Tencent QQ: 434866637)
 
-A flexible and professional game UI Editor for PIXI Engine.
-Download it from here: [www.fairygui.com](http://www.fairygui.com/index.php/download)
+A flexible and professional game UI editor for PIXI engine.
+Download: [www.fairygui.com](http://www.fairygui.com/index.php/download)
 
 ![](http://www.fairygui.com/wp-content/uploads/2016/01/2016-03-06_114556.png)  
 
 #Features
 * WYSWYG
-* The editor can produce a variety of complex UI components, no need to write code, do not need program knowledges.
-* No complex skin configuration, all UI elements can be free collocation.
-* Provided time axis to design UI dynamic effect(UI Transition).
-* Support for image compression, you can adjust the picture quality according to reduce the size of the package.
-* Support for the building and using of sequence frame animation, you can use the animation as a image on UI
-* Support BMFont production of bitmap fonts, as well as supporting creating bitmap font from images.
-* Use of files storage, so it is easy to use version management software for management, and also to facilitate the collaboration of many people.
-* Preview is provided, same effect with the actual running effect.
-* Flexible publish strategy, support automatic packing atlas, support the definition of multiple atlas.
-* Multi language support.
+* Build complex UI components easily without writing any code even no programming knowledge needed.
+* No complex skin configuration. All UI elements are seperated alone and can be mixed up to build more complex components.
+* Timeline tool provided for creating transitions at the designing time.
+* Support image compression when publish project, and options for image quality provided, you can adjust options to reduce the size of the final package.
+* Support sequence frame animation building, you can even treat the animation as an image for using at the designing time.
+* Support bitmap fonts which created by the BMFont technology, and support creating bitmap font using pictures.
+* Project files are stored separately, in order to suit the version controlling, and for project collaboration.
+* Preview functionality is provided. what you can see in the preview mode is what you'll get at the runtime.
+* Flexible publish strategy, support packing atlas automatically, or define many separated atlases you want.
+* I18n supported.
 * Resolution adaptive.
 
 #特性
