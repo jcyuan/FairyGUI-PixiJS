@@ -217,7 +217,7 @@ namespace fgui {
             this.adjustModalLayer();
 
             let pos: PIXI.Point;
-            let sizeW: number, sizeH: number = 0;
+            let sizeW: number = 0, sizeH: number = 0;
             if (target) {
                 pos = target.localToRoot();
                 sizeW = target.width;
