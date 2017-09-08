@@ -1,12 +1,14 @@
 FairyGUI-PIXI
 ====
 
-FairyGUI官方QQ群：434866637 (Official Chat Group for Tencent QQ: 434866637)
+FairyGUI官方QQ群：434866637 (Official online chat group for Tencent QQ: 434866637)
 
 A flexible and professional game UI editor for PIXI engine.
-Download: [www.fairygui.com](http://www.fairygui.com/index.php/download)
+Download: [http://www.fairygui.com/product/](http://www.fairygui.com/product/)
 
-![](http://www.fairygui.com/wp-content/uploads/2016/01/2016-03-06_114556.png)  
+Online demo (Chrome / MobilePhone): [http://jc-space.com/pixigui/](http://jc-space.com/pixigui/)
+
+![](http://www.fairygui.com/images/software.png)  
 
 #Features
 * WYSWYG
@@ -14,13 +16,12 @@ Download: [www.fairygui.com](http://www.fairygui.com/index.php/download)
 * No complex skin configuration. All UI elements are seperated alone and can be mixed up to build more complex components.
 * Timeline tool provided for creating transitions at the design time.
 * Support image compression with options for image quality etc, you can adjust options to reduce the size of the final package when publish project.
-* Support sequence frame animation creating, you can even treat the animation as an image for using at the design time.
-* Support bitmap fonts which created by the BMFont technology, and support creating bitmap font using pictures.
+* Support sequence frame animation creating, you can even treat the animation as an image to use at the design time.
+* Support bitmap fonts which created by BMFont technology, and support creating bitmap font using pictures.
 * Project files are stored separately, in order to suit the version controlling, and for project collaboration.
 * Preview functionality provided. What you can see in the preview mode is what you'll get at the runtime.
-* Flexible publish strategy, support packing atlas automatically, or define many separated atlases you want.
-* I18n supported.
-* Resolution adaptive.
+* Flexible publish strategy, support packing atlas automatically, or define many separated atlases as you want.
+* Mobile Landscape / Portrait
 
 #特性
 * WYSWYG
@@ -37,7 +38,7 @@ Download: [www.fairygui.com](http://www.fairygui.com/index.php/download)
 * 各种分辨率自适应。
 
 #Learn more
-Official website: [www.fairygui.com](http://www.fairygui.com)
+Official website: [http://www.fairygui.com](http://www.fairygui.com)
 
 #License
-MIT License
+This content is released under the ([http://opensource.org/licenses/MIT]http://opensource.org/licenses/MIT) MIT License.

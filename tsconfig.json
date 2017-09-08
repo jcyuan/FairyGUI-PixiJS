@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "stripInternal": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "noUnusedLocals": true,
+    "watch": true,
+    "sourceRoot": "./src",
+    "typeRoots": [
+      "./typing"
+    ]
+  },
+  "exclude": [
+    "node_modules",
+    "dist/",
+    "bin/"
+  ]
+}
