@@ -345,8 +345,8 @@ declare namespace PIXI {
         parent: Container;
         worldAlpha: number;
         filterArea: Rectangle;
-        protected _filters: Filter[] | null;
-        protected _enabledFilters: Filter[] | null;
+        protected _filters: Filter<any>[] | null;
+        protected _enabledFilters: Filter<any>[] | null;
         protected _bounds: Bounds;
         protected _boundsID: number;
         protected _lastBoundsID: number;
@@ -365,7 +365,7 @@ declare namespace PIXI {
         rotation: number;
         worldVisible: boolean;
         mask: PIXI.Graphics | PIXI.Sprite;
-        filters: Filter[] | null;
+        filters: Filter<any>[] | null;
 
         updateTransform(): void;
         protected displayObjectUpdateTransform(): void;
@@ -446,7 +446,7 @@ declare namespace PIXI {
         protected _cr?: number;
         protected _cy?: number;
         protected _sy?: number;
-        protected _nsx?: number;
+        protected _sx?: number;
         protected _cx?: number;
 
         updateSkew(): void;
@@ -520,7 +520,7 @@ declare namespace PIXI {
         drawRoundedRect(x: number, y: number, width: number, height: number, radius: number): Graphics;
         drawCircle(x: number, y: number, radius: number): Graphics;
         drawEllipse(x: number, y: number, width: number, height: number): Graphics;
-        drawPolygon(path: number[] | Point[]): Graphics;
+        drawPolygon(path: number[] | Point[] | Polygon): Graphics;
         clear(): Graphics;
         isFastRect(): boolean;
         protected _renderCanvas(renderer: CanvasRenderer): void;
@@ -844,6 +844,11 @@ declare namespace PIXI {
          */
         autoResize?: boolean;
 
+        /**
+         * Parameter passed to webgl context, set to "high-performance" for devices with dual graphics card
+         */
+        powerPreference?: string;
+
     }
 
     export interface ApplicationOptions extends RendererOptions {
@@ -858,8 +863,22 @@ declare namespace PIXI {
          */
         sharedLoader?: boolean;
 
+        /**
+         * automatically starts the rendering after the construction.
+         * Note that setting this parameter to false does NOT stop the shared ticker even if you set
+         * options.sharedTicker to true in case that it is already started. Stop it by your own.
+         */
+        autoStart?: boolean;
+
     }
 
+
+    interface DefaultRendererPlugins {
+        accessibility: accessibility.AccessibilityManager;
+        interaction: interaction.InteractionManager;
+    }
+    export interface RendererPlugins extends DefaultRendererPlugins {
+    }
     export class SystemRenderer extends utils.EventEmitter {
 
         constructor(system: string, options?: RendererOptions);
@@ -891,23 +910,26 @@ declare namespace PIXI {
         destroy(removeView?: boolean): void;
 
     }
+    interface DefaultCanvasRendererPlugins {
+        extract: extract.CanvasExtract;
+        prepare: prepare.CanvasPrepare;
+    }
+    export interface CanvasRendererPlugins extends DefaultCanvasRendererPlugins, RendererPlugins {
+    }
     export class CanvasRenderer extends SystemRenderer {
 
         // plugintarget mixin start
-        static __plugins: any;
-        //tslint:disable-next-line:ban-types forbidden-types
-        static registerPlugin(pluginName: string, ctor: Function): void;
-        plugins: any;
+        static __plugins: { [pluginName: string]: { new(renderer: CanvasRenderer): any; } };
+        static registerPlugin(pluginName: string, ctor: { new(renderer: CanvasRenderer): any; }): void;
+        plugins: CanvasRendererPlugins;
         initPlugins(): void;
         destroyPlugins(): void;
         // plugintarget mixin end
 
-        // from InteractionManager
-        interaction?: interaction.InteractionManager;
-
         constructor(options?: RendererOptions);
         constructor(screenWidth?: number, screenHeight?: number, options?: RendererOptions);
 
+        protected _activeBlendMode: number;
         rootContext: CanvasRenderingContext2D;
         rootResolution?: number;
         refresh: boolean;
@@ -921,6 +943,7 @@ declare namespace PIXI {
         setBlendMode(blendMode: number): void;
         destroy(removeView?: boolean): void;
         clear(clearColor?: string): void;
+        invalidateBlendMode(): void;
 
         on(event: "prerender" | "postrender", fn: () => void, context?: any): this;
         once(event: "prerender" | "postrender", fn: () => void, context?: any): this;
@@ -959,20 +982,21 @@ declare namespace PIXI {
 
     export interface WebGLRendererOptions extends RendererOptions {
     }
-
+    interface DefaultWebGLRendererPlugins {
+        extract: extract.WebGLExtract;
+        prepare: prepare.WebGLPrepare;
+    }
+    export interface WebGLRendererPlugins extends DefaultWebGLRendererPlugins, RendererPlugins {
+    }
     export class WebGLRenderer extends SystemRenderer {
 
         // plugintarget mixin start
-        static __plugins: any;
-        //tslint:disable-next-line:ban-types forbidden-types
-        static registerPlugin(pluginName: string, ctor: Function): void;
-        plugins: any;
+        static __plugins: { [pluginName: string]: { new(renderer: WebGLRenderer): any; } };
+        static registerPlugin(pluginName: string, ctor: { new(renderer: WebGLRenderer): any; }): void;
+        plugins: WebGLRendererPlugins;
         initPlugins(): void;
         destroyPlugins(): void;
         // plugintarget mixin end
-
-        // from InteractionManager
-        interaction: interaction.InteractionManager;
 
         constructor(options?: WebGLRendererOptions);
         constructor(screenWidth?: number, screenHeight?: number, options?: WebGLRendererOptions);
@@ -1173,7 +1197,7 @@ declare namespace PIXI {
         renderTarget: RenderTarget;
         sourceFrame: Rectangle;
         destinationFrame: Rectangle;
-        filters: Filter[];
+        filters: Filter<any>[];
         target: any;
         resolution: number;
     }
@@ -1188,10 +1212,10 @@ declare namespace PIXI {
         shaderCache: any;
         filterData: any;
 
-        pushFilter(target: RenderTarget, filters: Filter[]): void;
+        pushFilter(target: RenderTarget, filters: Filter<any>[]): void;
         popFilter(): void;
-        applyFilter(shader: glCore.GLShader | Filter, inputTarget: RenderTarget, outputTarget: RenderTarget, clear?: boolean): void;
-        syncUniforms(shader: glCore.GLShader, filter: Filter): void;
+        applyFilter(shader: glCore.GLShader | Filter<any>, inputTarget: RenderTarget, outputTarget: RenderTarget, clear?: boolean): void;
+        syncUniforms(shader: glCore.GLShader, filter: Filter<any>): void;
         getRenderTarget(clear?: boolean, resolution?: number): RenderTarget;
         returnRenderTarget(renderTarget: RenderTarget): RenderTarget;
         calculateScreenSpaceMatrix(outputMatrix: Matrix): Matrix;
@@ -1234,6 +1258,9 @@ declare namespace PIXI {
 
         stencilMaskStack: Graphics[];
 
+        protected _useCurrent(): void;
+        protected _getBitwiseMask(): number;
+
         setMaskStack(stencilMasStack: Graphics[]): void;
         pushStencil(graphics: Graphics): void;
         popStencil(): void;
@@ -1244,29 +1271,31 @@ declare namespace PIXI {
 
         constructor(renderer: WebGLRenderer);
 
-        renderer: SystemRenderer;
+        renderer: WebGLRenderer;
         onContextChange(): void;
         destroy(): void;
 
     }
-    export interface UniformData {
+    export interface UniformData<V> {
 
         type: string;
-        value: any;
+        value: V;
 
         // name is set by pixi if uniforms were automatically extracted from shader code, but not used anywhere
         name?: string;
 
     }
-    export class Filter {
+    type UniformDataMap<U> = {[K in keyof U]: UniformData<U[K]>};
+    export class Filter<U extends object> {
 
-        constructor(vertexSrc?: string, fragmentSrc?: string, uniforms?: { [name: string]: UniformData });
+        constructor(vertexSrc?: string, fragmentSrc?: string, uniforms?: UniformDataMap<U>);
 
+        protected _blendMode: number;
         vertextSrc?: string;
         fragmentSrc: string;
         blendMode: number;
-        protected uniformData: { [name: string]: UniformData };
-        uniforms: { [name: string]: any } | any;
+        protected uniformData: UniformDataMap<U>;
+        uniforms: U;
         glShaders: any;
         glShaderKey?: number;
         padding: number;
@@ -1279,7 +1308,13 @@ declare namespace PIXI {
         static defaultFragmentSrc: string;
 
     }
-    export class SpriteMaskFilter extends Filter {
+    type SpriteMaskFilterUniforms =
+        {
+            mask: Texture;
+            otherMatrix: Matrix;
+            alpha: number;
+        }
+    export class SpriteMaskFilter extends Filter<SpriteMaskFilterUniforms> {
 
         constructor(sprite: Sprite);
 
@@ -1422,6 +1457,7 @@ declare namespace PIXI {
         trim?: boolean;
         wordWrap?: boolean;
         wordWrapWidth?: number;
+        leading?: number;
 
     }
 
@@ -1488,6 +1524,8 @@ declare namespace PIXI {
         wordWrap: boolean;
         protected _wordWrapWidth: number;
         wordWrapWidth: number;
+        protected _leading: number;
+        leading: number;
 
         toFontString(): string;
 
@@ -1997,6 +2035,7 @@ declare namespace PIXI {
 
             multiplyUvs(uvs: Float32Array, out: Float32Array): Float32Array;
 
+            protected _textureDirtyFlag: boolean;
             protected _onTextureUpdate(): void;
             protected _renderWebGL(renderer: WebGLRenderer): void;
             protected _renderCanvas(renderer: CanvasRenderer): void;
@@ -2031,8 +2070,8 @@ declare namespace PIXI {
 
     export namespace filters {
 
-        export class FXAAFilter extends Filter { }
-        export class BlurFilter extends Filter {
+        export class FXAAFilter extends Filter<{}> { }
+        export class BlurFilter extends Filter<{}> {
 
             constructor(strength?: number, quality?: number, resolution?: number, kernelSize?: number);
 
@@ -2045,9 +2084,14 @@ declare namespace PIXI {
             blurX: number;
             blurY: number;
             quality: number;
+            blendMode: number
 
         }
-        export class BlurXFilter extends Filter {
+        type BlurXFilterUniforms =
+            {
+                strength: number;
+            }
+        export class BlurXFilter extends Filter<BlurXFilterUniforms> {
 
             constructor(strength?: number, quality?: number, resolution?: number, kernelSize?: number);
 
@@ -2061,7 +2105,11 @@ declare namespace PIXI {
             blur: number;
 
         }
-        export class BlurYFilter extends Filter {
+        type BlurYFilterUniforms =
+            {
+                strength: number;
+            }
+        export class BlurYFilter extends Filter<BlurYFilterUniforms> {
 
             constructor(strength?: number, quality?: number, resolution?: number, kernelSize?: number);
 
@@ -2075,7 +2123,12 @@ declare namespace PIXI {
             blur: number;
 
         }
-        export class ColorMatrixFilter extends Filter {
+        type ColorMatrixFilterUniforms =
+            {
+                m: Matrix;
+                uAlpha: number;
+            }
+        export class ColorMatrixFilter extends Filter<ColorMatrixFilterUniforms> {
 
             constructor();
 
@@ -2108,7 +2161,13 @@ declare namespace PIXI {
             reset(): void;
 
         }
-        export class DisplacementFilter extends Filter {
+        type DisplacementFilterUniforms =
+            {
+                mapSampler: Texture;
+                filterMatrix: Matrix;
+                scale: Point;
+            }
+        export class DisplacementFilter extends Filter<DisplacementFilterUniforms> {
 
             constructor(sprite: Sprite, scale?: number);
 
@@ -2116,13 +2175,18 @@ declare namespace PIXI {
             map: Texture;
 
         }
-        export class VoidFilter extends Filter {
+        export class VoidFilter extends Filter<{}> {
             glShaderKey: number;
         }
 
         // pixi-filters.d.ts todo
         // https://github.com/pixijs/pixi-filters/
-        export class NoiseFilter extends Filter {
+        type NoiseFilterUniforms =
+            {
+                uNoise: number;
+                uSeed: number;
+            }
+        export class NoiseFilter extends Filter<NoiseFilterUniforms> {
 
             constructor(noise?: number, seed?: number);
 
@@ -2203,7 +2267,8 @@ declare namespace PIXI {
         type InteractionPointerEvents = "pointerdown" | "pointercancel" | "pointerup" | "pointertap" | "pointerupoutside" | "pointermove" | "pointerover" | "pointerout";
         type InteractionTouchEvents = "touchstart" | "touchcancel" | "touchend" | "touchendoutside" | "touchmove" | "tap";
         type InteractionMouseEvents = "rightdown" | "mousedown" | "rightup" | "mouseup" | "rightclick" | "click" | "rightupoutside" | "mouseupoutside" | "mousemove" | "mouseover" | "mouseout" | "mouseover";
-        type InteractionEventTypes = InteractionPointerEvents | InteractionTouchEvents | InteractionMouseEvents;
+        type InteractionPixiEvents = "added" | "removed";
+        type InteractionEventTypes = InteractionPointerEvents | InteractionTouchEvents | InteractionMouseEvents | InteractionPixiEvents;
 
         export interface InteractionManagerOptions {
             autoPreventDefault?: boolean;
@@ -2277,7 +2342,7 @@ declare namespace PIXI {
 
     // pixi loader extends
     // https://github.com/englercj/resource-loader/
-    // 2.0.6
+    // 2.0.9
 
     class MiniSignalBinding {
 
@@ -2324,9 +2389,11 @@ declare namespace PIXI {
             crossOrigin?: boolean | string;
             loadType?: number;
             xhrType?: string;
-            metaData?: any;
-            loadElement?: HTMLImageElement | HTMLAudioElement | HTMLVideoElement;
-            skipSource?: boolean;
+            metaData?: {
+                loadElement?: HTMLImageElement | HTMLAudioElement | HTMLVideoElement;
+                skipSource?: boolean;
+                mimeType?: string | string[];
+            };
 
         }
         export interface ResourceDictionary {
@@ -2872,7 +2939,7 @@ declare namespace PIXI {
             drawType: number;
             data: ArrayBuffer | ArrayBufferView | any;
 
-            upload(data: ArrayBuffer | ArrayBufferView | any, offset?: number, dontBind?: boolean): void;
+            upload(data?: ArrayBuffer | ArrayBufferView | any, offset?: number, dontBind?: boolean): void;
             bind(): void;
 
             static createVertexBuffer(gl: WebGLRenderingContext, data: ArrayBuffer | ArrayBufferView | any, drawType: number): GLBuffer;
@@ -2981,7 +3048,7 @@ declare namespace PIXI {
 
             static FORCE_NATIVE: boolean;
 
-            constructor(gl: WebGLRenderingContext, state: WebGLState);
+            constructor(gl: WebGLRenderingContext, state?: WebGLState);
 
             protected nativeVaoExtension: any;
             protected nativeState: AttribState;
@@ -3082,7 +3149,7 @@ declare namespace PIXI {
             static prefixed: string | boolean;
 
             static EventEmitter: {
-                new (): EventEmitter;
+                new(): EventEmitter;
                 prefixed: string | boolean;
             };
 
@@ -3329,7 +3396,7 @@ declare namespace PIXI {
          * @see PIXI.Filter
          * @deprecated since version 3.0.6
          */
-        type AbstractFilter = Filter;
+        type AbstractFilter<U extends object> = Filter<U>;
 
         /**
          * @class

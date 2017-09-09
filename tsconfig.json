@@ -10,7 +10,7 @@
     "watch": true,
     "sourceRoot": "./src",
     "typeRoots": [
-      "./typing"
+      "./typings"
     ]
   },
   "exclude": [

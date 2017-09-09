@@ -1,4 +1,5 @@
 /// <reference path="../typings/pixi.js.d.ts" />
+/// <reference types="tweenjs" />
 declare namespace fgui {
     class Controller extends PIXI.utils.EventEmitter {
         private $name;
@@ -306,7 +307,7 @@ declare namespace fgui {
         requestFocus(): void;
         tooltips: string;
         blendMode: string;
-        filters: PIXI.Filter[];
+        filters: PIXI.Filter<{}>[];
         readonly inContainer: boolean;
         static isDisplayObjectOnStage(display: PIXI.DisplayObject): boolean;
         readonly onStage: boolean;
