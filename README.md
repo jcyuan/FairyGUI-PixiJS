@@ -15,7 +15,7 @@
 ## Demo
 * Check online demo for PixiJS version (Chrome / MobilePhone): [http://jc-space.com/pixigui/](http://jc-space.com/pixigui/)
   ![PixiJS GUI Demo](http://jc-space.com/demo.png)
-* Demo project can be downloaded [here.](http://res.fairygui.com/FairyGUI-PixiJS-demo20170908.zip)
+* Demo project can be downloaded [here.](http://res.fairygui.com/FairyGUI-PIXI-demo20170909.zip)
 
 # About Editor
 
@@ -99,7 +99,6 @@ class Main extends PIXI.Application {
 
 
 ## License
-===
-This content is released under the (http://opensource.org/licenses/MIT) MIT License.
+This content is released under the [MIT License.](http://opensource.org/licenses/MIT)
 
 [![Analytics](https://ga-beacon.appspot.com/UA-46868962-2/jcyuan/FairyGUI-PIXI)](https://github.com/igrigorik/ga-beacon)
