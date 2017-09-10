@@ -10,6 +10,7 @@
 ## Dependencies
 * PixiJS [https://github.com/pixijs/pixi.js/releases](https://github.com/pixijs/pixi.js/releases)
 * TweenJS [https://github.com/CreateJS/TweenJS/releases](https://github.com/CreateJS/TweenJS/releases)
+* ZLib [https://github.com/imaya/zlib.js](https://github.com/imaya/zlib.js: rawinflate.js)
 * TypeScript
 
 ## Demo
