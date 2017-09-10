@@ -91,9 +91,9 @@ class Main extends PIXI.Application {
         fgui.UIPackage.addPackage("test");  //add your package built in the editor
         
         let ins = fgui.UIPackage.createObject("test", "main") as fgui.GComponent;   //create an object to display
-        ins.setSize(fgui.GRoot.inst.width, fgui.GRoot.inst.height);     //add relation so that it will be auto resized when window size changes.
+        ins.setSize(fgui.GRoot.inst.width, fgui.GRoot.inst.height);     //add relation so that it will be auto resized when the window size is changed.
         ins.addRelation(fgui.GRoot.inst, fgui.RelationType.Size);
-        this.contentlayer.addChild(ins);   //show it
+        fgui.GRoot.inst.addChild(ins);   //show it
     }
 ```
 
