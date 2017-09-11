@@ -6,9 +6,9 @@
         "focus": false,
         "panel": "shared"
     },
-    "problemMatcher" : "$tsc",
     "tasks": [
         {
+            "problemMatcher" : "$tsc",
             "taskName": "buildProject",
             "group": {
                 "kind": "build",
@@ -23,6 +23,22 @@
                 "./dist/fairygui.js",
                 "--project",
                 "."
+            ]
+        },
+        {
+            "problemMatcher": [],
+            "taskName": "compressJs",
+            "group": "build",
+            "type": "shell",
+            "command": "uglifyjs",
+            "args": [
+                "./dist/fairygui.js",
+                "--source-map",
+                "./dist/fairygui.min.js.map",
+                "-m",
+                "-c",
+                "-o",
+                "./dist/fairygui.min.js"
             ]
         }
     ]

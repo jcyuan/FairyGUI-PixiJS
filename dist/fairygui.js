@@ -11,7 +11,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 var fgui;
 (function (fgui) {
-    var Controller = /** @class */ (function (_super) {
+    var Controller = (function (_super) {
         __extends(Controller, _super);
         function Controller() {
             var _this = _super.call(this) || this;
@@ -280,7 +280,7 @@ var fgui;
         return Controller;
     }(PIXI.utils.EventEmitter));
     fgui.Controller = Controller;
-    var PageTransition = /** @class */ (function () {
+    var PageTransition = (function () {
         function PageTransition() {
             this.fromIndex = 0;
             this.toIndex = 0;
@@ -290,7 +290,7 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var ControllerPage = /** @class */ (function () {
+    var ControllerPage = (function () {
         function ControllerPage() {
         }
         Object.defineProperty(ControllerPage.prototype, "controller", {
@@ -348,7 +348,7 @@ var fgui;
     var win = window;
     var hasPointer = !!(win.PointerEvent || win.MSPointerEvent);
     var hasTouch = 'ontouchstart' in window && PIXI.utils.isMobile.any;
-    var InteractiveEvents = /** @class */ (function () {
+    var InteractiveEvents = (function () {
         function InteractiveEvents() {
         }
         InteractiveEvents.Down = hasPointer ? "pointerdown" : hasTouch ? "touchstart" : "mousedown";
@@ -654,7 +654,7 @@ var fgui;
 /// <reference path="../typings/pixi.js.d.ts" />
 var fgui;
 (function (fgui) {
-    var GObject = /** @class */ (function () {
+    var GObject = (function () {
         function GObject() {
             this.$x = 0;
             this.$y = 0;
@@ -1825,7 +1825,7 @@ var fgui;
 /// <reference path="./GObject.ts" />
 var fgui;
 (function (fgui) {
-    var GComponent = /** @class */ (function (_super) {
+    var GComponent = (function (_super) {
         __extends(GComponent, _super);
         function GComponent() {
             var _this = _super.call(this) || this;
@@ -2634,7 +2634,7 @@ var fgui;
 /// <reference path="./GComponent.ts" />
 var fgui;
 (function (fgui) {
-    var GButton = /** @class */ (function (_super) {
+    var GButton = (function (_super) {
         __extends(GButton, _super);
         function GButton() {
             var _this = _super.call(this) || this;
@@ -3039,7 +3039,7 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var GComboBox = /** @class */ (function (_super) {
+    var GComboBox = (function (_super) {
         __extends(GComboBox, _super);
         function GComboBox() {
             var _this = _super.call(this) || this;
@@ -3375,7 +3375,7 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var GearBase = /** @class */ (function () {
+    var GearBase = (function () {
         function GearBase(owner) {
             this.$owner = owner;
             this.$easeType = fgui.ParseEaseType("quadOut");
@@ -3497,7 +3497,7 @@ var fgui;
 /// <reference path="./GearBase.ts" />
 var fgui;
 (function (fgui) {
-    var GearAnimation = /** @class */ (function (_super) {
+    var GearAnimation = (function (_super) {
         __extends(GearAnimation, _super);
         function GearAnimation(owner) {
             return _super.call(this, owner) || this;
@@ -3543,7 +3543,7 @@ var fgui;
         return GearAnimation;
     }(fgui.GearBase));
     fgui.GearAnimation = GearAnimation;
-    var GearAnimationValue = /** @class */ (function () {
+    var GearAnimationValue = (function () {
         function GearAnimationValue(playing, frame) {
             if (playing === void 0) { playing = true; }
             if (frame === void 0) { frame = 0; }
@@ -3555,7 +3555,7 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var GearColor = /** @class */ (function (_super) {
+    var GearColor = (function (_super) {
         __extends(GearColor, _super);
         function GearColor(owner) {
             var _this = _super.call(this, owner) || this;
@@ -3595,7 +3595,7 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var GearDisplay = /** @class */ (function (_super) {
+    var GearDisplay = (function (_super) {
         __extends(GearDisplay, _super);
         function GearDisplay(owner) {
             return _super.call(this, owner) || this;
@@ -3616,7 +3616,7 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var GearIcon = /** @class */ (function (_super) {
+    var GearIcon = (function (_super) {
         __extends(GearIcon, _super);
         function GearIcon(owner) {
             return _super.call(this, owner) || this;
@@ -3651,7 +3651,7 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var GearLook = /** @class */ (function (_super) {
+    var GearLook = (function (_super) {
         __extends(GearLook, _super);
         function GearLook(owner) {
             return _super.call(this, owner) || this;
@@ -3745,7 +3745,7 @@ var fgui;
         return GearLook;
     }(fgui.GearBase));
     fgui.GearLook = GearLook;
-    var GearLookValue = /** @class */ (function () {
+    var GearLookValue = (function () {
         function GearLookValue(alpha, rotation, grayed) {
             if (alpha === void 0) { alpha = 0; }
             if (rotation === void 0) { rotation = 0; }
@@ -3759,7 +3759,7 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var GearSize = /** @class */ (function (_super) {
+    var GearSize = (function (_super) {
         __extends(GearSize, _super);
         function GearSize(owner) {
             return _super.call(this, owner) || this;
@@ -3868,7 +3868,7 @@ var fgui;
         return GearSize;
     }(fgui.GearBase));
     fgui.GearSize = GearSize;
-    var GearSizeValue = /** @class */ (function () {
+    var GearSizeValue = (function () {
         function GearSizeValue(width, height, scaleX, scaleY) {
             if (width === void 0) { width = 0; }
             if (height === void 0) { height = 0; }
@@ -3884,7 +3884,7 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var GearText = /** @class */ (function (_super) {
+    var GearText = (function (_super) {
         __extends(GearText, _super);
         function GearText(owner) {
             return _super.call(this, owner) || this;
@@ -3919,7 +3919,7 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var GearXY = /** @class */ (function (_super) {
+    var GearXY = (function (_super) {
         __extends(GearXY, _super);
         function GearXY(owner) {
             return _super.call(this, owner) || this;
@@ -4017,7 +4017,7 @@ var fgui;
 /// <reference path="./GObject.ts" />
 var fgui;
 (function (fgui) {
-    var GGraph = /** @class */ (function (_super) {
+    var GGraph = (function (_super) {
         __extends(GGraph, _super);
         function GGraph() {
             var _this = _super.call(this) || this;
@@ -4184,7 +4184,7 @@ var fgui;
 /// <reference path="./GObject.ts" />
 var fgui;
 (function (fgui) {
-    var GGroup = /** @class */ (function (_super) {
+    var GGroup = (function (_super) {
         __extends(GGroup, _super);
         function GGroup() {
             return _super !== null && _super.apply(this, arguments) || this;
@@ -4273,7 +4273,7 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var GImage = /** @class */ (function (_super) {
+    var GImage = (function (_super) {
         __extends(GImage, _super);
         function GImage() {
             return _super.call(this) || this;
@@ -4383,7 +4383,7 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var GLabel = /** @class */ (function (_super) {
+    var GLabel = (function (_super) {
         __extends(GLabel, _super);
         function GLabel() {
             return _super.call(this) || this;
@@ -4510,14 +4510,14 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var ItemInfo = /** @class */ (function () {
+    var ItemInfo = (function () {
         function ItemInfo() {
             this.width = 0;
             this.height = 0;
         }
         return ItemInfo;
     }());
-    var GList = /** @class */ (function (_super) {
+    var GList = (function (_super) {
         __extends(GList, _super);
         function GList() {
             var _this = _super.call(this) || this;
@@ -6422,7 +6422,7 @@ var fgui;
 (function (fgui) {
     var utils;
     (function (utils) {
-        var Recycler = /** @class */ (function () {
+        var Recycler = (function () {
             function Recycler() {
                 this.$count = 0;
                 this.$pool = {};
@@ -6478,7 +6478,7 @@ var fgui;
 (function (fgui) {
     var utils;
     (function (utils) {
-        var GObjectRecycler = /** @class */ (function (_super) {
+        var GObjectRecycler = (function (_super) {
             __extends(GObjectRecycler, _super);
             function GObjectRecycler() {
                 return _super.call(this) || this;
@@ -6506,7 +6506,7 @@ var fgui;
 /// <reference path="./utils/GObjectRecycler.ts" />
 var fgui;
 (function (fgui) {
-    var GLoader = /** @class */ (function (_super) {
+    var GLoader = (function (_super) {
         __extends(GLoader, _super);
         function GLoader() {
             var _this = _super.call(this) || this;
@@ -6925,7 +6925,7 @@ var fgui;
 /// <reference path="./GObject.ts" />
 var fgui;
 (function (fgui) {
-    var GMovieClip = /** @class */ (function (_super) {
+    var GMovieClip = (function (_super) {
         __extends(GMovieClip, _super);
         function GMovieClip() {
             return _super.call(this) || this;
@@ -7044,7 +7044,7 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var GProgressBar = /** @class */ (function (_super) {
+    var GProgressBar = (function (_super) {
         __extends(GProgressBar, _super);
         function GProgressBar() {
             var _this = _super.call(this) || this;
@@ -7221,7 +7221,7 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var LineInfo = /** @class */ (function () {
+    var LineInfo = (function () {
         function LineInfo() {
             this.width = 0;
             this.height = 0;
@@ -7256,7 +7256,7 @@ var fgui;
         return LineInfo;
     }());
     fgui.LineInfo = LineInfo;
-    var GTextField = /** @class */ (function (_super) {
+    var GTextField = (function (_super) {
         __extends(GTextField, _super);
         function GTextField() {
             var _this = _super.call(this) || this;
@@ -8001,14 +8001,14 @@ var fgui;
 /// <reference path="./GTextField.ts" />
 var fgui;
 (function (fgui) {
-    var TextBlock = /** @class */ (function () {
+    var TextBlock = (function () {
         function TextBlock() {
         }
         return TextBlock;
     }());
     fgui.TextBlock = TextBlock;
     //TOOD: impl
-    var GRichTextField = /** @class */ (function (_super) {
+    var GRichTextField = (function (_super) {
         __extends(GRichTextField, _super);
         function GRichTextField() {
             var _this = _super.call(this) || this;
@@ -8069,7 +8069,7 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var GRootStatus = /** @class */ (function () {
+    var GRootStatus = (function () {
         function GRootStatus() {
             this.touchDown = false;
             this.mouseX = 0;
@@ -8078,7 +8078,7 @@ var fgui;
         return GRootStatus;
     }());
     fgui.GRootStatus = GRootStatus;
-    var GRoot = /** @class */ (function (_super) {
+    var GRoot = (function (_super) {
         __extends(GRoot, _super);
         function GRoot() {
             var _this = _super.call(this) || this;
@@ -8497,7 +8497,7 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var GScrollBar = /** @class */ (function (_super) {
+    var GScrollBar = (function (_super) {
         __extends(GScrollBar, _super);
         function GScrollBar() {
             var _this = _super.call(this) || this;
@@ -8643,7 +8643,7 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var GSlider = /** @class */ (function (_super) {
+    var GSlider = (function (_super) {
         __extends(GSlider, _super);
         function GSlider() {
             var _this = _super.call(this) || this;
@@ -8813,7 +8813,7 @@ var fgui;
 var fgui;
 (function (fgui) {
     //TODO: impl
-    var GTextInput = /** @class */ (function (_super) {
+    var GTextInput = (function (_super) {
         __extends(GTextInput, _super);
         function GTextInput() {
             return _super.call(this) || this;
@@ -8869,7 +8869,7 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var GTimer = /** @class */ (function () {
+    var GTimer = (function () {
         function GTimer() {
             this.$enumIdx = 0;
             this.$enumCount = 0;
@@ -8967,7 +8967,7 @@ var fgui;
         return GTimer;
     }());
     fgui.GTimer = GTimer;
-    var TimerItem = /** @class */ (function () {
+    var TimerItem = (function () {
         function TimerItem() {
             this.delay = 0;
             this.counter = 0;
@@ -9013,7 +9013,7 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var PopupMenu = /** @class */ (function () {
+    var PopupMenu = (function () {
         function PopupMenu(resourceURL) {
             if (resourceURL === void 0) { resourceURL = null; }
             if (!resourceURL) {
@@ -9180,7 +9180,7 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var RelationItem = /** @class */ (function () {
+    var RelationItem = (function () {
         function RelationItem(owner) {
             this.$owner = owner;
             this.$defs = [];
@@ -9603,7 +9603,7 @@ var fgui;
         return RelationItem;
     }());
     fgui.RelationItem = RelationItem;
-    var RelationDef = /** @class */ (function () {
+    var RelationDef = (function () {
         function RelationDef() {
         }
         RelationDef.prototype.copyFrom = function (source) {
@@ -9616,7 +9616,7 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var Relations = /** @class */ (function () {
+    var Relations = (function () {
         function Relations(owner) {
             this.sizeDirty = false;
             this.$owner = owner;
@@ -9796,7 +9796,7 @@ var fgui;
 var fgui;
 (function (fgui) {
     /**@final */
-    var ScrollPane = /** @class */ (function (_super) {
+    var ScrollPane = (function (_super) {
         __extends(ScrollPane, _super);
         function ScrollPane(owner, scrollType, scrollBarMargin, scrollBarDisplay, flags, vtScrollBarRes, hzScrollBarRes) {
             var _this = _super.call(this) || this;
@@ -10937,7 +10937,7 @@ var fgui;
         return ScrollPane;
     }(PIXI.utils.EventEmitter));
     fgui.ScrollPane = ScrollPane;
-    var ThrowTween = /** @class */ (function () {
+    var ThrowTween = (function () {
         function ThrowTween() {
             this.start = new PIXI.Point();
             this.change1 = new PIXI.Point();
@@ -10960,7 +10960,7 @@ var fgui;
 var fgui;
 (function (fgui) {
     ;
-    var Transition = /** @class */ (function () {
+    var Transition = (function () {
         function Transition(owner) {
             this.autoPlayRepeat = 1;
             this.autoPlayDelay = 0;
@@ -11846,7 +11846,7 @@ var fgui;
         return Transition;
     }());
     fgui.Transition = Transition;
-    var TransitionItem = /** @class */ (function () {
+    var TransitionItem = (function () {
         function TransitionItem() {
             this.time = 0;
             this.type = 0;
@@ -11867,7 +11867,7 @@ var fgui;
         };
         return TransitionItem;
     }());
-    var TransitionValue = /** @class */ (function () {
+    var TransitionValue = (function () {
         function TransitionValue() {
             this.f1 = 0;
             this.f2 = 0;
@@ -11884,7 +11884,7 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var Window = /** @class */ (function (_super) {
+    var Window = (function (_super) {
         __extends(Window, _super);
         function Window() {
             var _this = _super.call(this) || this;
@@ -12161,7 +12161,7 @@ var fgui;
 var fgui;
 (function (fgui) {
     /**global ui configuration */
-    var UIConfig = /** @class */ (function () {
+    var UIConfig = (function () {
         function UIConfig() {
         }
         /**default font name of your project. */
@@ -12193,7 +12193,7 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var BitmapFont = /** @class */ (function () {
+    var BitmapFont = (function () {
         function BitmapFont() {
             this.size = 0;
             this.glyphs = {};
@@ -12204,7 +12204,7 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var BMGlyph = /** @class */ (function () {
+    var BMGlyph = (function () {
         function BMGlyph() {
             this.x = 0;
             this.y = 0;
@@ -12222,7 +12222,7 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var Frame = /** @class */ (function () {
+    var Frame = (function () {
         function Frame() {
             this.addDelay = 0;
         }
@@ -12239,7 +12239,7 @@ var fgui;
 var fgui;
 (function (fgui) {
     ;
-    var MovieClip = /** @class */ (function (_super) {
+    var MovieClip = (function (_super) {
         __extends(MovieClip, _super);
         function MovieClip(owner) {
             var _this = _super.call(this) || this;
@@ -12435,7 +12435,7 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var MovieClipData = /** @class */ (function () {
+    var MovieClipData = (function () {
         function MovieClipData() {
             this.repeatedCount = 0;
             this.$curFrame = 0;
@@ -12524,7 +12524,7 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var DefaultMovieClipSettings = /** @class */ (function () {
+    var DefaultMovieClipSettings = (function () {
         function DefaultMovieClipSettings() {
             /**the first frame number to start to play */
             this.startFrame = 0;
@@ -12555,7 +12555,7 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var UIContainer = /** @class */ (function (_super) {
+    var UIContainer = (function (_super) {
         __extends(UIContainer, _super);
         function UIContainer(owner) {
             var _this = _super.call(this) || this;
@@ -12596,7 +12596,7 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var UIImage = /** @class */ (function (_super) {
+    var UIImage = (function (_super) {
         __extends(UIImage, _super);
         function UIImage(owner) {
             var _this = _super.call(this) || this;
@@ -12716,7 +12716,7 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var UISprite = /** @class */ (function (_super) {
+    var UISprite = (function (_super) {
         __extends(UISprite, _super);
         function UISprite(owner) {
             var _this = _super.call(this) || this;
@@ -12731,7 +12731,7 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var DefaultUIStageOptions = /** @class */ (function () {
+    var DefaultUIStageOptions = (function () {
         function DefaultUIStageOptions() {
             this.scaleMode = "showAll" /* SHOW_ALL */;
             this.orientation = "auto" /* AUTO */;
@@ -12744,7 +12744,7 @@ var fgui;
         return DefaultUIStageOptions;
     }());
     fgui.DefaultUIStageOptions = DefaultUIStageOptions;
-    var UIStage = /** @class */ (function (_super) {
+    var UIStage = (function (_super) {
         __extends(UIStage, _super);
         function UIStage(app, stageOptions) {
             var _this = _super.call(this) || this;
@@ -13009,7 +13009,7 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var UITextField = /** @class */ (function (_super) {
+    var UITextField = (function (_super) {
         __extends(UITextField, _super);
         function UITextField(owner) {
             var _this = _super.call(this) || this;
@@ -13116,7 +13116,7 @@ var PIXI;
 (function (PIXI) {
     var extras;
     (function (extras) {
-        var InteractionManager = /** @class */ (function (_super) {
+        var InteractionManager = (function (_super) {
             __extends(InteractionManager, _super);
             function InteractionManager(renderer, options) {
                 var _this = _super.call(this, renderer, options) || this;
@@ -13165,7 +13165,7 @@ var PIXI;
 })(PIXI || (PIXI = {}));
 var fgui;
 (function (fgui) {
-    var DisplayListItem = /** @class */ (function () {
+    var DisplayListItem = (function () {
         function DisplayListItem(packageItem, type) {
             this.packageItem = packageItem;
             this.type = type;
@@ -13176,7 +13176,7 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var PackageItem = /** @class */ (function () {
+    var PackageItem = (function () {
         function PackageItem() {
             this.width = 0;
             this.height = 0;
@@ -13197,7 +13197,7 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var UIObjectFactory = /** @class */ (function () {
+    var UIObjectFactory = (function () {
         function UIObjectFactory() {
         }
         UIObjectFactory.setPackageItemExtension = function (url, type) {
@@ -13277,7 +13277,7 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var AtlasConfig = /** @class */ (function () {
+    var AtlasConfig = (function () {
         function AtlasConfig(atlasName, frame, orig, trim, rotate) {
             this.atlasName = atlasName;
             this.frame = frame;
@@ -13287,7 +13287,7 @@ var fgui;
         }
         return AtlasConfig;
     }());
-    var UIPackage = /** @class */ (function () {
+    var UIPackage = (function () {
         function UIPackage() {
             this.$items = [];
             this.$atlasConfigs = {};
@@ -13958,7 +13958,7 @@ var fgui;
 (function (fgui) {
     var utils;
     (function (utils) {
-        var Binder = /** @class */ (function () {
+        var Binder = (function () {
             function Binder() {
             }
             Binder.create = function (func, context) {
@@ -14009,7 +14009,7 @@ var fgui;
         * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
         * OTHER DEALINGS IN THE SOFTWARE.
         */
-        var ColorMatrix = /** @class */ (function () {
+        var ColorMatrix = (function () {
             /**
              * Provides helper functions for assembling a matrix for use with the {{#crossLink "ColorMatrixFilter"}}{{/crossLink}}.
              * Most methods return the instance to facilitate chained calls.
@@ -14376,7 +14376,7 @@ var fgui;
 (function (fgui) {
     var utils;
     (function (utils) {
-        var DragIndicator = /** @class */ (function () {
+        var DragIndicator = (function () {
             function DragIndicator() {
                 this.$agent = new fgui.GLoader();
                 this.$agent.draggable = true;
@@ -14454,7 +14454,7 @@ var fgui;
 (function (fgui) {
     var utils;
     (function (utils) {
-        var Margin = /** @class */ (function () {
+        var Margin = (function () {
             function Margin() {
                 this.left = 0;
                 this.right = 0;
@@ -14493,7 +14493,7 @@ var fgui;
 (function (fgui) {
     var utils;
     (function (utils) {
-        var NumberUtil = /** @class */ (function () {
+        var NumberUtil = (function () {
             function NumberUtil() {
             }
             NumberUtil.clamp = function (value, min, max) {
@@ -14536,7 +14536,7 @@ var fgui;
 (function (fgui) {
     var utils;
     (function (utils) {
-        var RawByte = /** @class */ (function () {
+        var RawByte = (function () {
             function RawByte() {
             }
             RawByte.inRange = function (a, min, max) {
@@ -14642,7 +14642,7 @@ var fgui;
 (function (fgui) {
     var utils;
     (function (utils) {
-        var StringUtil = /** @class */ (function () {
+        var StringUtil = (function () {
             function StringUtil() {
             }
             StringUtil.encodeHTML = function (str) {
@@ -14757,7 +14757,7 @@ var fgui;
 (function (fgui) {
     var utils;
     (function (utils) {
-        var UBBParser = /** @class */ (function () {
+        var UBBParser = (function () {
             function UBBParser() {
                 this.$readPos = 0;
                 this.smallFontSize = 12;
@@ -14859,7 +14859,7 @@ var fgui;
 (function (fgui) {
     var utils;
     (function (utils) {
-        var XmlNode = /** @class */ (function () {
+        var XmlNode = (function () {
             function XmlNode(ele) {
                 this.nodeName = ele.nodeName;
                 this.context = ele;
@@ -14887,7 +14887,7 @@ var fgui;
             return XmlNode;
         }());
         utils.XmlNode = XmlNode;
-        var XmlParser = /** @class */ (function () {
+        var XmlParser = (function () {
             function XmlParser() {
             }
             XmlParser.tryParse = function (xmlstring, mimeType) {

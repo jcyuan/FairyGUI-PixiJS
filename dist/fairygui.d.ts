@@ -1,5 +1,4 @@
 /// <reference path="../typings/pixi.js.d.ts" />
-/// <reference types="tweenjs" />
 declare namespace fgui {
     class Controller extends PIXI.utils.EventEmitter {
         private $name;

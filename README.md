@@ -14,9 +14,10 @@
 * TypeScript
 
 ## Demo
-* Check online demo for PixiJS version (Chrome / MobilePhone): [http://jc-space.com/pixigui/](http://jc-space.com/pixigui/)
+* Demo repo on Github: [https://github.com/jcyuan/FairyGUI-PixiJS-Example](https://github.com/jcyuan/FairyGUI-PixiJS-Example)
+* Or check online demo for PixiJS version (Chrome / MobilePhone): [http://jc-space.com/pixigui/](http://jc-space.com/pixigui/)
   ![PixiJS GUI Demo](http://jc-space.com/demo.png)
-* Demo project can be downloaded [here.](http://res.fairygui.com/FairyGUI-PIXI-demo20170909.zip)
+* Demo project can be downloaded [here.](https://github.com/jcyuan/FairyGUI-PixiJS-Example/releases)
 
 # About Editor
 
