@@ -3,7 +3,7 @@
 * This is an UILib based on PixiJS to build game GUI.
 * Download editor here: [http://en.fairygui.com/product/](http://en.fairygui.com/product)
 * Editor supports a few of game engines include Unity3D, PixiJS, ActionScript, Starling etc. [Learn more.](http://en.fairygui.com/)
-* The developers use the editor and Lib are all here in the Tencent QQ online chat group for discussing issues: GroupID 434866637. Welcome to join us and have fun. :)
+* The developers use the editor and Lib are all here in the Tencent QQ online chat group for discussing issues. Click to join in: [Group1 434866637](//shang.qq.com/wpa/qunwpa?idkey=ab22fe72483424d16370a31f19fde67810fb7175007b364154258c36df974e77), [Group2 614444599](//shang.qq.com/wpa/qunwpa?idkey=2793363c5f735ba3d1baa3f81732ee84df3c3e9a31a99206bddc6cc912f062c7). Welcome to join us and have fun. :)
 
 # About Lib
 
