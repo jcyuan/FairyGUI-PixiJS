@@ -510,11 +510,11 @@ namespace fgui {
             }
         }
 
-        public get filters(): PIXI.Filter[] {
+        public get filters(): PIXI.Filter<{}>[] {
             return this.$displayObject.filters;
         }
 
-        public set filters(value: PIXI.Filter[]) {
+        public set filters(value: PIXI.Filter<{}>[]) {
             this.$displayObject.filters = value;
         }
 

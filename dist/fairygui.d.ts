@@ -306,7 +306,7 @@ declare namespace fgui {
         requestFocus(): void;
         tooltips: string;
         blendMode: string;
-        filters: PIXI.Filter[];
+        filters: PIXI.Filter<{}>[];
         readonly inContainer: boolean;
         static isDisplayObjectOnStage(display: PIXI.DisplayObject): boolean;
         readonly onStage: boolean;

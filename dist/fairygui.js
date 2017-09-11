@@ -7271,7 +7271,7 @@ var fgui;
                 fontSize: 12,
                 fontFamily: fgui.UIConfig.defaultFont,
                 align: "left" /* Left */,
-                //leading: 3,
+                leading: 3,
                 fill: 0
             });
             _this.verticalAlign = 0 /* Top */;
@@ -7422,7 +7422,7 @@ var fgui;
             set: function (value) {
                 if (this.$leading != value) {
                     this.$leading = value;
-                    //this.$style.leading = this.$leading;
+                    this.$style.leading = this.$leading;
                     this.render();
                 }
             },
@@ -7600,7 +7600,7 @@ var fgui;
             this.$textField.style.fontSize = this.$style.fontSize;
             this.$textField.style.fontFamily = this.$style.fontFamily;
             this.$textField.style.fill = this.$style.fill;
-            //this.$textField.style.leading = this.$style.leading;
+            this.$textField.style.leading = this.$style.leading;
         };
         GTextField.prototype.$render = function () {
             if (this.$requireRender)
@@ -8276,7 +8276,7 @@ var fgui;
             this.addChild(popup);
             this.adjustModalLayer();
             var pos;
-            var sizeW, sizeH = 0;
+            var sizeW = 0, sizeH = 0;
             if (target) {
                 pos = target.localToRoot();
                 sizeW = target.width;

@@ -1,44 +1,106 @@
-FairyGUI-PIXI
-====
+# What is this?
 
-FairyGUI官方QQ群：434866637 (Official online chat group for Tencent QQ: 434866637)
+* This is an UILib based on PixiJS to build game GUI.
+* Download editor here: [http://en.fairygui.com/product/](http://en.fairygui.com/product)
+* Editor supports a few of game engines include Unity3D, PixiJS, ActionScript, Starling etc. [Learn more.](http://en.fairygui.com/)
+* The developers use the editor and Lib are all here in the Tencent QQ online chat group for discussing issues: GroupID 434866637. Welcome to join us and have fun. :)
 
-A flexible and professional game UI editor for PIXI engine.
-Download: [http://www.fairygui.com/product/](http://www.fairygui.com/product/)
+# About Lib
 
-Online demo (Chrome / MobilePhone): [http://jc-space.com/pixigui/](http://jc-space.com/pixigui/)
+## Dependencies
+* PixiJS [https://github.com/pixijs/pixi.js/releases](https://github.com/pixijs/pixi.js/releases)
+* TweenJS [https://github.com/CreateJS/TweenJS/releases](https://github.com/CreateJS/TweenJS/releases)
+* ZLib [https://github.com/imaya/zlib.js (rawinflate.js)](https://github.com/imaya/zlib.js)
+* TypeScript
 
-![](http://www.fairygui.com/images/software.png)  
+## Demo
+* Demo repo on Github: [https://github.com/jcyuan/FairyGUI-PixiJS-Example](https://github.com/jcyuan/FairyGUI-PixiJS-Example)
+* Or check online demo for PixiJS version (Chrome / MobilePhone): [http://jc-space.com/pixigui/](http://jc-space.com/pixigui/)
+  ![PixiJS GUI Demo](http://jc-space.com/demo.png)
+* Demo project can be downloaded [here.](https://github.com/jcyuan/FairyGUI-PixiJS-Example/releases)
 
-#Features
+# About Editor
+
+![Editor](http://www.fairygui.com/images/software.png)
+
+## Features
 * WYSWYG
 * Build complex UI components easily without writing any code even no programming knowledge needed.
 * No complex skin configuration. All UI elements are seperated alone and can be mixed up to build more complex components.
 * Timeline tool provided for creating transitions at the design time.
-* Support image compression with options for image quality etc, you can adjust options to reduce the size of the final package when publish project.
-* Support sequence frame animation creating, you can even treat the animation as an image to use at the design time.
-* Support bitmap fonts which created by BMFont technology, and support creating bitmap font using pictures.
-* Project files are stored separately, in order to suit the version controlling, and for project collaboration.
-* Preview functionality provided. What you can see in the preview mode is what you'll get at the runtime.
+* Support sequenced frame animation creating.
+* Support using of bitmap fonts which created by BMFont technology, and support to create bitmap font using pictures.
+* Project files are stored separately in order to suit the version controlling, and for project collaboration.
+* Instant preview.
 * Flexible publish strategy, support packing atlas automatically, or define many separated atlases as you want.
-* Mobile Landscape / Portrait
+* Image compression with options for image quality etc, you can adjust options to reduce the size of the final package.
 
-#特性
-* WYSWYG
-* 在编辑器即可制作各种复杂UI组件，无需编写代码，不需要编程基础。
-* 没有语法复杂的皮肤配置，所有UI元素都可以自由搭配。
-* 提供时间轴设计UI动效。
-* 支持图片压缩，可以根据需求调整图片质量，减少发布包大小。
-* 支持序列帧动画编辑和使用，可以像使用图片一样在UI上使用动画剪辑。
-* 支持BMFont制作的位图字体，支持使用图片制作位图字体。
-* 使用分散文件方式存储素材，方便使用版本管理软件进行管理，也方便多人协作编辑。
-* 提供预览，预览效果和实际运行效果相同。
-* 灵活的发布方式，支持自动打包图集，支持定义多个图集。
-* 多国语言支持
-* 各种分辨率自适应。
+# How to use the Lib?
 
-#Learn more
-Official website: [http://www.fairygui.com](http://www.fairygui.com)
+### Here is a snippet of basic usage example from the demo code: (typescript)
 
-#License
-This content is released under the ([http://opensource.org/licenses/MIT]http://opensource.org/licenses/MIT) MIT License.
+```typescript
+class Main extends PIXI.Application {
+
+    public constructor() {
+
+        let view = document.querySelector("#canvasContainer canvas") as HTMLCanvasElement;
+
+        super({ view: view, backgroundColor: 0xb5b5b5, antialias: true, forceCanvas:false });
+
+        /**global settings */
+        fgui.UIConfig.defaultFont = "Microsoft YaHei";
+        fgui.UIConfig.verticalScrollBar = "ui://test/ScrollBar_VT";
+        fgui.UIConfig.horizontalScrollBar = "ui://test/ScrollBar_HZ";
+        fgui.UIConfig.popupMenu = "ui://test/PopupMenu";
+        fgui.UIConfig.globalModalWaiting = "ui://test/GlobalModalWaiting";
+        fgui.UIConfig.windowModalWaiting = "ui://test/WindowModalWaiting";
+
+        //main entry
+        fgui.GRoot.inst.attachTo(this, {
+            designWidth: 1136,
+            designHeight: 640,
+            scaleMode: fgui.StageScaleMode.FIXED_AUTO,
+            orientation: fgui.StageOrientation.LANDSCAPE,
+            alignV: fgui.StageAlign.TOP,
+            alignH: fgui.StageAlign.LEFT
+        });
+
+        //start to preload resource
+        //test.jpg actually is a binary file but just ends with fake postfix. so here we need to specify the loadType etc.
+        PIXI.loader.add("test", "images/test.jpg", { loadType: PIXI.loaders.Resource.LOAD_TYPE.XHR, xhrType: PIXI.loaders.Resource.XHR_RESPONSE_TYPE.BUFFER })
+            .add("test@atlas0", "images/test@atlas0.png")
+            .add("test@atlas0_1", "images/test@atlas0_1.png")
+            .add("test@atlas0_2", "images/test@atlas0_2.png")
+            .on("progress", this.loadProgress, this)
+            .on("complete", this.resLoaded, this)
+            .load();
+    }
+
+    private loadProgress(loader: PIXI.loaders.Loader): void {
+        let p = loader.progress;
+        //this.loadingView.setProgress(p);
+        if (p >= 100) {
+            loader.off("progress", this.loadProgress, this);
+            //this.loadingView.dispose();
+            //this.loadingView = null;
+        }
+    }
+
+    private resLoaded(loader: PIXI.loaders.Loader): void {
+        loader.removeAllListeners();
+
+        fgui.UIPackage.addPackage("test");  //add your package built in the editor
+        
+        let ins = fgui.UIPackage.createObject("test", "main") as fgui.GComponent;   //create an object to display
+        ins.setSize(fgui.GRoot.inst.width, fgui.GRoot.inst.height);     //add relation so that it will be auto resized when the window size is changed.
+        ins.addRelation(fgui.GRoot.inst, fgui.RelationType.Size);
+        fgui.GRoot.inst.addChild(ins);   //show it
+    }
+```
+
+
+## License
+This content is released under the [MIT License.](http://opensource.org/licenses/MIT)
+
+[![Analytics](https://ga-beacon.appspot.com/UA-46868962-2/jcyuan/FairyGUI-PIXI)](https://github.com/igrigorik/ga-beacon)

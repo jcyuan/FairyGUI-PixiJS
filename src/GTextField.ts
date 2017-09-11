@@ -77,7 +77,7 @@ namespace fgui {
                 fontSize: 12,
                 fontFamily: UIConfig.defaultFont,
                 align: AlignType.Left,
-                //leading: 3,
+                leading: 3,
                 fill: 0
             });
             this.verticalAlign = VertAlignType.Top;
@@ -216,7 +216,7 @@ namespace fgui {
         public set leading(value: number) {
             if (this.$leading != value) {
                 this.$leading = value;
-                //this.$style.leading = this.$leading;
+                this.$style.leading = this.$leading;
                 this.render();
             }
         }
@@ -369,7 +369,7 @@ namespace fgui {
             this.$textField.style.fontSize = this.$style.fontSize;
             this.$textField.style.fontFamily = this.$style.fontFamily;
             this.$textField.style.fill = this.$style.fill;
-            //this.$textField.style.leading = this.$style.leading;
+            this.$textField.style.leading = this.$style.leading;
         }
 
         private $render(): void {

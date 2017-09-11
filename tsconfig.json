@@ -8,10 +8,7 @@
     "alwaysStrict": true,
     "noUnusedLocals": true,
     "watch": true,
-    "sourceRoot": "./src",
-    "typeRoots": [
-      "./typing"
-    ]
+    "sourceRoot": "./src"
   },
   "exclude": [
     "node_modules",
