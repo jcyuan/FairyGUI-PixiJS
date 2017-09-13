@@ -698,8 +698,8 @@ namespace fgui {
             return this.off(InteractiveEvents.Click, listener, thisObj);
         }
 
-        public hasClick(): boolean {
-            return this.hasListener(InteractiveEvents.Click);
+        public hasClick(fn?:Function): boolean {
+            return this.hasListener(InteractiveEvents.Click, fn);
         }
 
         public on(type: string, listener: Function, thisObject?: any): this {
@@ -721,8 +721,11 @@ namespace fgui {
             return this;
         }
 
-        public hasListener(event: string): boolean {
-            return this.$displayObject.listeners(event, true);
+        public hasListener(event: string, handler?:Function): boolean {   //do we need to also check the context?
+            if(!handler)
+                return this.$displayObject.listeners(event, true);
+            else
+                return this.$displayObject.listeners(event).indexOf(handler) >= 0;
         }
 
         public emit(event: string, ...args: any[]): boolean {
