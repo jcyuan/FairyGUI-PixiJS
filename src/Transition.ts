@@ -601,7 +601,7 @@ namespace fgui {
                 item.tweener.removeAllEventListeners();
                 createjs.Tween.removeTweens(item.value);
             }
-            else
+            else if(item.tweener)
                 item.tweener.setPaused(true);
             item.tweener = null;
         }
