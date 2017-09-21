@@ -68,7 +68,8 @@ class Main extends PIXI.Application {
 
         //start to preload resource
         //test.jpg actually is a binary file but just ends with fake postfix. so here we need to specify the loadType etc.
-        PIXI.loader.add("test", "images/test.jpg", { loadType: PIXI.loaders.Resource.LOAD_TYPE.XHR, xhrType: PIXI.loaders.Resource.XHR_RESPONSE_TYPE.BUFFER })
+        let loader = new fgui.utils.AssetLoader();
+        loader.add("test", "images/test.jpg", { loadType: PIXI.loaders.Resource.LOAD_TYPE.XHR, xhrType: PIXI.loaders.Resource.XHR_RESPONSE_TYPE.BUFFER })
             .add("test@atlas0", "images/test@atlas0.png")
             .add("test@atlas0_1", "images/test@atlas0_1.png")
             .add("test@atlas0_2", "images/test@atlas0_2.png")
