@@ -85,16 +85,23 @@ namespace fgui {
                 let item: TimerItem = this.$items[this.$enumIdx];
                 this.$enumIdx++;
 
-                if (item.advance(this.$ticker.elapsedMS)) {
+                let ms = this.$ticker.elapsedMS;
+                if (item.advance(ms)) {
                     if (item.end) {
                         this.$enumIdx--;
                         this.$enumCount--;
                         this.$items.splice(this.$enumIdx, 1);
                         this.$itemPool.push(item);
                     }
-
-                    if(item.callback)
-                        item.param && item.param.length ? item.callback.apply(item.thisObj, item.param) : item.callback.call(item.thisObj, item.param);
+                    
+                    if(item.callback) {
+                        let args = [ms];
+                        if(item.param && item.param instanceof Array)
+                            args = item.param.concat(args);
+                        else if(item.param !== void 0)
+                            args.unshift(item.param);
+                        item.callback.apply(item.thisObj, args);
+                    }
                 }
             }
         }
@@ -106,11 +113,6 @@ namespace fgui {
             this.$ticker.add(this.advance, this, PIXI.UPDATE_PRIORITY.NORMAL);
             if(!this.$ticker.started)
                 this.$ticker.start();
-        }
-
-        public get elapsedMS():number {
-            if(!this.$ticker) return 0;
-            return this.$ticker.elapsedMS;
         }
     }
     

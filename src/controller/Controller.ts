@@ -1,4 +1,4 @@
-namespace fgui {
+namespace fgui.controller {
 
     export class Controller extends PIXI.utils.EventEmitter {
 
@@ -7,8 +7,7 @@ namespace fgui {
         private $previousIndex: number = 0;
         private $pageIds: string[];
         private $pageNames: string[];
-        private $pageTransitions: PageTransition[];
-        private $playingTransition: Transition;
+        private $actions: Action[];
 
         /**@internal */
         $parent: GComponent;
@@ -44,46 +43,31 @@ namespace fgui {
         }
 
         public set selectedIndex(value: number) {
-            this.setSelectedIndexInternal(value);
-        }
-
-        public setSelectedIndex(value: number = 0): void {
-            this.setSelectedIndexInternal(value, false);
-        }
-
-        protected setSelectedIndexInternal(value: number, emitEvent: boolean = true): void {
             if (this.$selectedIndex != value) {
                 if (value > this.$pageIds.length - 1)
-                    throw new Error(`index out of bounds: ${value}`);
+                    throw new Error(`index out of range: ${value}`);
 
                 this.$updating = true;
-
                 this.$previousIndex = this.$selectedIndex;
                 this.$selectedIndex = value;
                 this.$parent.applyController(this);
 
-                if (emitEvent !== false)
-                    this.emit(StateChangeEvent.CHANGED, this);
+                this.emit(StateChangeEvent.CHANGED, this);
 
-                if (this.$playingTransition) {
-                    this.$playingTransition.stop();
-                    this.$playingTransition = null;
-                }
+                this.$updating = false;
+            }
+        }
 
-                if (this.$pageTransitions) {
-                    let len: number = this.$pageTransitions.length;
-                    for (let i: number = 0; i < len; i++) {
-                        let pt: PageTransition = this.$pageTransitions[i];
-                        if (pt.toIndex == this.$selectedIndex && (pt.fromIndex == -1 || pt.fromIndex == this.$previousIndex)) {
-                            this.$playingTransition = this.parent.getTransition(pt.transitionName);
-                            break;
-                        }
-                    }
+        //same effect as selectedIndex but without event emitted
+        public setSelectedIndex(value: number = 0): void {
+            if (this.$selectedIndex != value) {
+                if (value > this.$pageIds.length - 1)
+                    throw new Error(`index out of range: ${value}`);
 
-                    if (this.$playingTransition)
-                        this.$playingTransition.play(() => { this.$playingTransition = null; }, this);
-                }
-
+                this.$updating = true;
+                this.$previousIndex = this.$selectedIndex;
+                this.$selectedIndex = value;
+                this.$parent.applyController(this);
                 this.$updating = false;
             }
         }
@@ -100,17 +84,11 @@ namespace fgui {
         }
 
         public set selectedPage(val: string) {
-            let i: number = this.$pageNames.indexOf(val);
-            if (i == -1)
-                i = 0;
-            this.selectedIndex = i;
+            this.selectedIndex = Math.max(0, this.$pageNames.indexOf(val));
         }
 
         public setSelectedPage(value: string): void {
-            let i: number = this.$pageNames.indexOf(value);
-            if (i == -1)
-                i = 0;
-            this.setSelectedIndexInternal(i, false);
+            this.setSelectedIndex(Math.max(0, this.$pageNames.indexOf(value)));
         }
 
         public get previousPage(): string {
@@ -175,7 +153,7 @@ namespace fgui {
         }
 
         public hasPage(aName: string): boolean {
-            return this.$pageNames.indexOf(aName) != -1;
+            return this.$pageNames.indexOf(aName) >= 0;
         }
 
         public getPageIndexById(aId: string): number {
@@ -228,6 +206,14 @@ namespace fgui {
                 return this.$pageIds[this.$previousIndex];
         }
 
+        public executeActions(): void {
+            if (this.$actions && this.$actions.length > 0) {
+                this.$actions.forEach(a => {
+                    a.execute(this, this.previousPageId, this.selectedPageId);
+                });
+            }
+        }
+
         public setup(xml: utils.XmlNode): void {
             this.$name = xml.attributes.name;
             this.$autoRadioGroupDepth = xml.attributes.autoRadioGroupDepth == "true";
@@ -242,24 +228,38 @@ namespace fgui {
                 }
             }
 
+            let col: fgui.utils.XmlNode[] = xml.children;
+            if (col.length > 0) {
+                this.$actions = this.$actions || [];
+                col.forEach(cxml => {
+                    let action: Action = Action.create(cxml.attributes.type);
+                    action.setup(cxml);
+                    this.$actions.push(action);
+                });
+            }
+
             str = xml.attributes.transitions;
             if (str) {
-                this.$pageTransitions = [];
-                let k: number = 0;
+                this.$actions = this.$actions || [];
+                let k: number, e: number;
                 str.split(",").forEach(str => {
                     if (str && str.length) {
-                        let pt: PageTransition = new PageTransition();
+                        let pt: PlayTransitionAction = new PlayTransitionAction();
                         k = str.indexOf("=");
                         pt.transitionName = str.substr(k + 1);
                         str = str.substring(0, k);
                         k = str.indexOf("-");
-                        pt.toIndex = parseInt(str.substring(k + 1));
+                        e = parseInt(str.substring(k + 1));
+                        if (e < this.$pageIds.length)
+                            pt.toPage = [this.$pageIds[e]];
                         str = str.substring(0, k);
-                        if (str == "*")
-                            pt.fromIndex = -1;
-                        else
-                            pt.fromIndex = parseInt(str);
-                        this.$pageTransitions.push(pt);
+                        if (str != "*") {
+                            e = parseInt(str);
+                            if (e < this.$pageIds.length)
+                                pt.fromPage = [this.$pageIds[e]];
+                        }
+                        pt.stopOnExit = true;
+                        this.$actions.push(pt);
                     }
                 });
             }
@@ -269,11 +269,5 @@ namespace fgui {
             else
                 this.$selectedIndex = -1;
         }
-    }
-
-    class PageTransition {
-        public transitionName: string;
-        public fromIndex: number = 0;
-        public toIndex: number = 0;
     }
 }

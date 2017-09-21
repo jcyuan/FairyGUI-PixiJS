@@ -212,9 +212,9 @@ namespace fgui {
         private create(resKey: string): void {
             this.$resKey = resKey;
 
-            let buf: PIXI.loaders.Resource = PIXI.loader.resources[this.$resKey];
+            let buf: PIXI.loaders.Resource = utils.AssetLoader.resourcesPool[this.$resKey];
             if (!buf)
-                buf = PIXI.loader.resources[`${this.$resKey}_fui`];
+                buf = utils.AssetLoader.resourcesPool[`${this.$resKey}_fui`];
             if (!buf)
                 throw new Error(`Resource '${this.$resKey}' not found, please make sure that this resource has been added into the resource library by calling PIXI.loader.add method.`);
 
@@ -361,10 +361,15 @@ namespace fgui {
                         }
                     });
                 }
-                else if (pi.bitmapFont != null) {
+                else if (pi.bitmapFont != null)
                     delete UIPackage.$bitmapFonts[pi.bitmapFont.id];
-                }
-            });
+                    
+                let cfg = this.$atlasConfigs[pi.id];
+                if(cfg)
+                    utils.AssetLoader.destroyResource(`${this.$resKey}@${cfg.atlasName}`);
+            }, this);
+
+            utils.AssetLoader.destroyResource(`${this.$resKey}`);
         }
 
         public get id(): string {
@@ -458,11 +463,11 @@ namespace fgui {
                         item.decoded = true;
                         let fileName: string = (item.file != null && item.file.length > 0) ? item.file : (`${item.id}.png`);
                         let resName: string = `${this.$resKey}@${utils.StringUtil.getFileName(fileName)}`;
-                        let res: PIXI.loaders.Resource = PIXI.loader.resources[resName];
-                        if (!res) throw new Error(`${resName} not found in the shared PIXI.loader.resources library, please check`);
+                        let res: PIXI.loaders.Resource = utils.AssetLoader.resourcesPool[resName];
+                        if (!res) throw new Error(`${resName} not found in fgui.utils.AssetLoader.resourcesPool, please use new AssetLoader() to load assets instead of using new PIXI.loaders.Loader(). besides, AssetLoader is a sub-class from PIXI.loaders.Loader so they have the same usage.`);
                         item.texture = res.texture;
                         if (!item.texture) {
-                            res = PIXI.loader.resources[`${this.$resKey}@${fileName.replace("\.", "_")}`];
+                            res = utils.AssetLoader.resourcesPool[`${this.$resKey}@${fileName.replace("\.", "_")}`];
                             item.texture = res.texture;
                         }
                     }
@@ -498,7 +503,7 @@ namespace fgui {
                     return item.componentData;
 
                 default:
-                    return PIXI.loader.resources[`${this.$resKey}@${item.id}`];
+                    return utils.AssetLoader.resourcesPool[`${this.$resKey}@${item.id}`];
             }
         }
 
@@ -661,21 +666,23 @@ namespace fgui {
                 let frame: Frame = new Frame();
                 str = node.attributes.rect;
                 let arr = str.split(UIPackage.sep0);
-                let frameRect: PIXI.Rectangle = new PIXI.Rectangle(parseInt(arr[0]), parseInt(arr[1]), parseInt(arr[2]), parseInt(arr[3]));
+                let trimRect: PIXI.Rectangle = new PIXI.Rectangle(parseInt(arr[0]), parseInt(arr[1]), parseInt(arr[2]), parseInt(arr[3]));
                 str = node.attributes.addDelay;
                 if (str)
                     frame.addDelay = parseInt(str);
                 item.frames.push(frame);
-                if (frameRect.width <= 0 || frameRect.height <= 0)
+                if (trimRect.width <= 0)
                     return;
                 str = node.attributes.sprite;
                 if (str)
                     str = `${item.id}_${str}`;
                 else
                     str = `${item.id}_${index}`;
-                let spr: AtlasConfig = this.$atlasConfigs[str];
-                if(spr != null)
-                    frame.texture = this.createSpriteTexture(str, spr);
+                let cfg: AtlasConfig = this.$atlasConfigs[str];
+                if(cfg != null) {
+                    cfg.trim = trimRect;
+                    frame.texture = this.createSpriteTexture(str, cfg);
+                }
             });
         }
 

@@ -11,11 +11,12 @@ namespace fgui {
         protected $trackBounds: boolean;
         protected $boundsChanged: boolean;
         protected $children: GObject[];
+        protected $applyingController:controller.Controller;
 
         /**@internal */
         $buildingDisplayList: boolean;
         /**@internal */
-        $controllers: Controller[];
+        $controllers: controller.Controller[];
         /**@internal */
         $transitions: Transition[];
         /**@internal */
@@ -293,27 +294,27 @@ namespace fgui {
             return false;
         }
 
-        public addController(controller: Controller): void {
+        public addController(controller: controller.Controller): void {
             this.$controllers.push(controller);
             controller.$parent = this;
             this.applyController(controller);
         }
 
-        public getControllerAt(index: number): Controller {
+        public getControllerAt(index: number): controller.Controller {
             return this.$controllers[index];
         }
 
-        public getController(name: string): Controller {
+        public getController(name: string): controller.Controller {
             let cnt: number = this.$controllers.length;
             for (let i: number = 0; i < cnt; ++i) {
-                let c: Controller = this.$controllers[i];
+                let c: controller.Controller = this.$controllers[i];
                 if (c.name == name)
                     return c;
             }
             return null;
         }
 
-        public removeController(c: Controller): void {
+        public removeController(c: controller.Controller): void {
             let index: number = this.$controllers.indexOf(c);
             if (index == -1)
                 throw new Error("controller not exists");
@@ -326,7 +327,7 @@ namespace fgui {
             });
         }
 
-        public get controllers(): Controller[] {
+        public get controllers(): controller.Controller[] {
             return this.$controllers;
         }
 
@@ -366,10 +367,13 @@ namespace fgui {
             }
         }
 
-        public applyController(c: Controller): void {
+        public applyController(c: controller.Controller): void {
+            this.$applyingController = c;
             this.$children.forEach(child => {
                 child.handleControllerChanged(c);
             });
+            this.$applyingController = null;
+            c.executeActions();
         }
 
         public applyAllControllers(): void {
@@ -378,7 +382,7 @@ namespace fgui {
             }, this);
         }
 
-        public adjustRadioGroupDepth(obj: GObject, c: Controller): void {
+        public adjustRadioGroupDepth(obj: GObject, c: controller.Controller): void {
             let myIndex: number = -1, maxIndex: number = -1;
             this.$children.forEach((child, i) => {
                 if (child == obj) {
@@ -390,8 +394,11 @@ namespace fgui {
                         maxIndex = i;
                 }
             });
-            if (myIndex < maxIndex)
+            if (myIndex < maxIndex) {
+                if(this.$applyingController != null)
+                    this.$children[maxIndex].handleControllerChanged(this.$applyingController);  //TODO: twice
                 this.swapChildrenAt(myIndex, maxIndex);
+            }
         }
 
         public getTransitionAt(index: number): Transition {
@@ -467,10 +474,12 @@ namespace fgui {
             return this.$rootContainer.mask;
         }
 
-        public set mask(value: PIXI.Graphics | PIXI.Sprite) {
-            if (value instanceof PIXI.Graphics)
-                (value as PIXI.Graphics).isMask = true;
-            this.$rootContainer.mask = value;
+        public set mask(obj: PIXI.Graphics | PIXI.Sprite) {
+            if(!obj) return;
+            obj.interactive = obj.interactiveChildren = false;
+            if (obj instanceof PIXI.Graphics)
+                obj.isMask = true;
+            this.$rootContainer.mask = obj;
         }
 
         protected updateOpaque() {
@@ -540,7 +549,7 @@ namespace fgui {
         }
 
         protected handleGrayedChanged(): void {
-            let c: Controller = this.getController("grayed");
+            let c: controller.Controller = this.getController("grayed");
             if (c != null) {
                 c.selectedIndex = this.grayed ? 1 : 0;
                 return;
@@ -812,10 +821,10 @@ namespace fgui {
             let col: utils.XmlNode[] = xml.children;
             col.forEach(cxml => {
                 if (cxml.nodeName == "controller") {
-                    let controller = new Controller();
-                    this.$controllers.push(controller);
-                    controller.$parent = this;
-                    controller.setup(cxml);
+                    let c = new controller.Controller();
+                    this.$controllers.push(c);
+                    c.$parent = this;
+                    c.setup(cxml);
                 }
             });
 
@@ -851,11 +860,8 @@ namespace fgui {
             str = xml.attributes.mask;
             if (str) {
                 let maskObj: PIXI.DisplayObject = this.getChildById(str).displayObject;
-                if (maskObj instanceof PIXI.Graphics || maskObj instanceof PIXI.Sprite) {
-                    if (maskObj instanceof PIXI.Graphics)
-                        (maskObj as PIXI.Graphics).isMask = true;
+                if (maskObj instanceof PIXI.Graphics || maskObj instanceof PIXI.Sprite)
                     this.mask = maskObj;
-                }
                 else
                     throw new Error("only PIXI.Sprite or PIXI.Graphics can be applied as mask object");
             }

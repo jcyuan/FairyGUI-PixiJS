@@ -826,7 +826,7 @@ namespace fgui {
             return resultRect;
         }
 
-        public handleControllerChanged(c: Controller): void {
+        public handleControllerChanged(c: controller.Controller): void {
             for (let i: number = 0; i < GearType.Count; i++) {
                 let gear: GearBase<GObject> = this.$gears[i];
                 if (gear != null && gear.controller == c)

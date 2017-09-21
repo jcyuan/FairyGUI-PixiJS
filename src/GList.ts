@@ -28,7 +28,7 @@ namespace fgui {
         private $selectionMode: ListSelectionMode;
         private $align: AlignType;
         private $verticalAlign: VertAlignType;
-        private $selectionController: Controller;
+        private $selectionController: controller.Controller;
 
         private $lastSelectedIndex: number = 0;
         private $pool: utils.GObjectRecycler;
@@ -221,11 +221,11 @@ namespace fgui {
             this.$selectionMode = value;
         }
 
-        public get selectionController(): Controller {
+        public get selectionController(): controller.Controller {
             return this.$selectionController;
         }
 
-        public set selectionController(value: Controller) {
+        public set selectionController(value: controller.Controller) {
             this.$selectionController = value;
         }
 
@@ -654,7 +654,7 @@ namespace fgui {
                 this.setVirtualListChangedFlag(true);
         }
 
-        public handleControllerChanged(c: Controller): void {
+        public handleControllerChanged(c: controller.Controller): void {
             super.handleControllerChanged(c);
 
             if (this.$selectionController == c)
@@ -663,7 +663,7 @@ namespace fgui {
 
         private updateSelectionController(index: number): void {
             if (this.$selectionController != null && !this.$selectionController.$updating && index < this.$selectionController.pageCount) {
-                let c: Controller = this.$selectionController;
+                let c: controller.Controller = this.$selectionController;
                 this.$selectionController = null;
                 c.selectedIndex = index;
                 this.$selectionController = c;

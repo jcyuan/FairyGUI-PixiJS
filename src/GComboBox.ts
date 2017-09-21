@@ -15,7 +15,7 @@ namespace fgui {
         private $visibleItemCount: number = 0;
         private $itemsUpdated: boolean;
         private $selectedIndex: number = 0;
-        private $buttonController: Controller;
+        private $buttonController: controller.Controller;
         private $popupDir: PopupDirection = PopupDirection.Down;
 
         private $over: boolean;

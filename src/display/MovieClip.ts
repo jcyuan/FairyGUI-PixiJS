@@ -148,6 +148,7 @@ namespace fgui {
         }
 
         private update(): void {
+            if(this.UIOwner.$inProgressBuilding) return;
             if (this.$playing && this.$frameCount != 0 && this.$status != MovieClipStatus.ENDED) {
                 this.data.update(this);
                 if (this.$currentFrame != this.data.currentFrame) {
@@ -197,7 +198,8 @@ namespace fgui {
         }
 
         private setFrame(frame: Frame): void {
-            this.texture = frame == null ? null : frame.texture;
+            this._texture = frame == null ? null : frame.texture;
+            this._textureID = -1;
         }
 
         private added(disp: PIXI.DisplayObject): void {

@@ -87,7 +87,7 @@ namespace fgui {
          * 2) just pass 1 object which implements MovieClipSettings (recommended)
          */
         public setPlaySettings(...args: any[]): void {
-            this.$movieClip.setPlaySettings(args);
+            this.$movieClip.setPlaySettings.apply(this.$movieClip, args);
         }
 
         public constructFromResource(): void {

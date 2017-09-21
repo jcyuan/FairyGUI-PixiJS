@@ -33,7 +33,7 @@ namespace fgui {
             item.title = caption;
             item.data = handler;
             item.grayed = false;
-            let c: Controller = item.getController("checked");
+            let c: controller.Controller = item.getController("checked");
             if (c != null)
                 c.selectedIndex = 0;
             return item;
@@ -45,7 +45,7 @@ namespace fgui {
             item.title = caption;
             item.data = handler;
             item.grayed = false;
-            let c: Controller = item.getController("checked");
+            let c: controller.Controller = item.getController("checked");
             if (c != null)
                 c.selectedIndex = 0;
             return item;
@@ -82,7 +82,7 @@ namespace fgui {
 
         public setItemCheckable(name: string, checkable: boolean): void {
             let item: GButton = this.$list.getChild(name) as GButton;
-            let c: Controller = item.getController("checked");
+            let c: controller.Controller = item.getController("checked");
             if (c != null) {
                 if (checkable) {
                     if (c.selectedIndex == 0)
@@ -95,14 +95,14 @@ namespace fgui {
 
         public setItemChecked(name: string, checked: boolean): void {
             let item: GButton = this.$list.getChild(name) as GButton;
-            let c: Controller = item.getController("checked");
+            let c: controller.Controller = item.getController("checked");
             if (c != null)
                 c.selectedIndex = checked ? 2 : 1;
         }
 
         public isItemChecked(name: string): boolean {
             let item: GButton = this.$list.getChild(name) as GButton;
-            let c: Controller = item.getController("checked");
+            let c: controller.Controller = item.getController("checked");
             if (c != null)
                 return c.selectedIndex == 2;
             else
@@ -152,7 +152,7 @@ namespace fgui {
                 this.$list.selectedIndex = -1;
                 return;
             }
-            let c: Controller = itemObject.getController("checked");
+            let c: controller.Controller = itemObject.getController("checked");
             if (c != null && c.selectedIndex != 0) {
                 if (c.selectedIndex == 1)
                     c.selectedIndex = 2;

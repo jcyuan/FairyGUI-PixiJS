@@ -10,7 +10,7 @@ namespace fgui {
         protected $tweenDelay: number;
 
         protected $owner: GObject & T;
-        protected $controller: Controller;
+        protected $controller: controller.Controller;
 
         public constructor(owner: GObject & T) {
             this.$owner = owner;
@@ -19,11 +19,11 @@ namespace fgui {
             this.$tweenDelay = 0;
         }
 
-        public get controller(): Controller {
+        public get controller(): controller.Controller {
             return this.$controller;
         }
 
-        public set controller(val: Controller) {
+        public set controller(val: controller.Controller) {
             if (val != this.$controller) {
                 this.$controller = val;
                 if (this.$controller)

@@ -533,7 +533,7 @@ namespace fgui {
             
             item.tweener = createjs.Tween.get(item.value, {
                 onChange: utils.Binder.create(this.$tweenUpdate, this, item)
-            }).to(toProps, item.duration * 1000, item.easeType).call(completeHandler);
+            }, null, true).to(toProps, item.duration * 1000, item.easeType).call(completeHandler);
             
             if (item.hook != null)
                 item.hook.call(item.hookObj);
@@ -588,7 +588,7 @@ namespace fgui {
                 this.disposeTween(item);
                 item.tweener = createjs.Tween.get(item.value, {
                     onChange: utils.Binder.create(this.$tweenUpdate, this, item)
-                }).to(toProps, item.duration * 1000, item.easeType).call(this.$tweenRepeatComplete, [null, item], this);
+                }, null, true).to(toProps, item.duration * 1000, item.easeType).call(this.$tweenRepeatComplete, [null, item], this);
             }
             else
                 this.$tweenComplete(null, item);
@@ -751,7 +751,7 @@ namespace fgui {
         }
 
         /**@internal */
-        $shakeItem(item: TransitionItem) {
+        $shakeItem(item: TransitionItem, elapsedMS:number) {
             let r: number = Math.ceil(item.value.f1 * item.startValue.f3 / item.value.f2);
             let rx: number = (Math.random() * 2 - 1) * r;
             let ry: number = (Math.random() * 2 - 1) * r;
@@ -762,7 +762,7 @@ namespace fgui {
             item.target.$gearLocked = false;
             item.startValue.f1 = rx;
             item.startValue.f2 = ry;
-            item.startValue.f3 -= GTimer.inst.elapsedMS / 1000;
+            item.startValue.f3 -= elapsedMS / 1000;
             if (item.startValue.f3 <= 0) {
                 item.target.$gearLocked = true;
                 item.target.setXY(item.target.x - item.startValue.f1, item.target.y - item.startValue.f2);
@@ -1001,8 +1001,8 @@ namespace fgui {
         }
 
         /**@internal */
-        $shake(trans:Transition):void {
-            trans.$shakeItem(this);
+        $shake(trans:Transition, elapsedMS:number):void {
+            trans.$shakeItem(this, elapsedMS);
         }
     }
 
