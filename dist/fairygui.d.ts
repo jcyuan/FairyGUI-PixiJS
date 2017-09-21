@@ -1,54 +1,5 @@
 /// <reference path="../typings/pixi.js.d.ts" />
 declare namespace fgui {
-    class Controller extends PIXI.utils.EventEmitter {
-        private $name;
-        private $selectedIndex;
-        private $previousIndex;
-        private $pageIds;
-        private $pageNames;
-        private $pageTransitions;
-        private $playingTransition;
-        private static $nextPageId;
-        constructor();
-        name: string;
-        readonly parent: GComponent;
-        selectedIndex: number;
-        setSelectedIndex(value?: number): void;
-        protected setSelectedIndexInternal(value: number, emitEvent?: boolean): void;
-        readonly previsousIndex: number;
-        selectedPage: string;
-        setSelectedPage(value: string): void;
-        readonly previousPage: string;
-        readonly pageCount: number;
-        getPageName(index?: number): string;
-        addPage(name?: string): void;
-        addPageAt(name: string, index?: number): void;
-        removePage(name: string): void;
-        removePageAt(index?: number): void;
-        clearPages(): void;
-        hasPage(aName: string): boolean;
-        getPageIndexById(aId: string): number;
-        getPageIdByName(aName: string): string;
-        getPageNameById(aId: string): string;
-        getPageId(index?: number): string;
-        selectedPageId: string;
-        oppositePageId: string;
-        readonly previousPageId: string;
-        setup(xml: utils.XmlNode): void;
-    }
-}
-declare namespace fgui {
-    class ControllerPage {
-        protected $controller: Controller;
-        protected $id: string;
-        controller: Controller;
-        index: number;
-        name: string;
-        clear(): void;
-        id: string;
-    }
-}
-declare namespace fgui {
     class InteractiveEvents {
         static Down: string;
         static Cancel: string;
@@ -336,11 +287,11 @@ declare namespace fgui {
         dispose(): void;
         click(listener: Function, thisObj?: any): this;
         removeClick(listener: Function, thisObj?: any): this;
-        hasClick(): boolean;
+        hasClick(fn?: Function): boolean;
         on(type: string, listener: Function, thisObject?: any): this;
         off(type: string, listener: Function, thisObject?: any): this;
         once(type: string, listener: Function, thisObject?: any): this;
-        hasListener(event: string): boolean;
+        hasListener(event: string, handler?: Function): boolean;
         emit(event: string, ...args: any[]): boolean;
         removeAllListeners(type?: string): void;
         draggable: boolean;
@@ -354,7 +305,7 @@ declare namespace fgui {
         rootToLocal(ax?: number, ay?: number, resultPoint?: PIXI.Point): PIXI.Point;
         localToGlobalRect(ax?: number, ay?: number, aWidth?: number, aHeight?: number, resultRect?: PIXI.Rectangle): PIXI.Rectangle;
         globalToLocalRect(ax?: number, ay?: number, aWidth?: number, aHeight?: number, resultRect?: PIXI.Rectangle): PIXI.Rectangle;
-        handleControllerChanged(c: Controller): void;
+        handleControllerChanged(c: controller.Controller): void;
         protected switchDisplayObject(newObj: PIXI.DisplayObject): void;
         protected handleXYChanged(): void;
         protected handleSizeChanged(): void;
@@ -399,6 +350,7 @@ declare namespace fgui {
         protected $trackBounds: boolean;
         protected $boundsChanged: boolean;
         protected $children: GObject[];
+        protected $applyingController: controller.Controller;
         constructor();
         protected createDisplayObject(): void;
         dispose(): void;
@@ -422,15 +374,15 @@ declare namespace fgui {
         swapChildrenAt(index1: number, index2?: number): void;
         readonly numChildren: number;
         isAncestorOf(child: GObject): boolean;
-        addController(controller: Controller): void;
-        getControllerAt(index: number): Controller;
-        getController(name: string): Controller;
-        removeController(c: Controller): void;
-        readonly controllers: Controller[];
+        addController(controller: controller.Controller): void;
+        getControllerAt(index: number): controller.Controller;
+        getController(name: string): controller.Controller;
+        removeController(c: controller.Controller): void;
+        readonly controllers: controller.Controller[];
         childStateChanged(child: GObject): void;
-        applyController(c: Controller): void;
+        applyController(c: controller.Controller): void;
         applyAllControllers(): void;
-        adjustRadioGroupDepth(obj: GObject, c: Controller): void;
+        adjustRadioGroupDepth(obj: GObject, c: controller.Controller): void;
         getTransitionAt(index: number): Transition;
         getTransition(transName: string): Transition;
         isChildInView(child: GObject): boolean;
@@ -464,7 +416,7 @@ declare namespace fgui {
     class GButton extends GComponent implements IColorableTitle {
         protected $titleObject: GObject;
         protected $iconObject: GObject;
-        protected $relatedController: Controller;
+        protected $relatedController: controller.Controller;
         private $mode;
         private $selected;
         private $title;
@@ -496,15 +448,15 @@ declare namespace fgui {
         fontSize: number;
         selected: boolean;
         mode: ButtonMode;
-        relatedController: Controller;
-        readonly pageOption: ControllerPage;
+        relatedController: controller.Controller;
+        readonly pageOption: controller.PageOption;
         changeStateOnClick: boolean;
         linkedPopup: GObject;
         addStateListener(listener: Function, thisObj?: any): void;
         removeStateListener(listener: Function, thisObj?: any): void;
         fireClick(downEffect?: boolean): void;
         protected setState(val: string): void;
-        handleControllerChanged(c: Controller): void;
+        handleControllerChanged(c: controller.Controller): void;
         protected handleGrayedChanged(): void;
         protected constructFromXML(xml: utils.XmlNode): void;
         setupAfterAdd(xml: utils.XmlNode): void;
@@ -565,9 +517,9 @@ declare namespace fgui {
         protected $tweenTime: number;
         protected $tweenDelay: number;
         protected $owner: GObject & T;
-        protected $controller: Controller;
+        protected $controller: controller.Controller;
         constructor(owner: GObject & T);
-        controller: Controller;
+        controller: controller.Controller;
         tween: boolean;
         tweenDelay: number;
         tweenTime: number;
@@ -791,7 +743,7 @@ declare namespace fgui {
         defaultItem: string;
         autoResizeItem: boolean;
         selectionMode: ListSelectionMode;
-        selectionController: Controller;
+        selectionController: controller.Controller;
         readonly itemPool: utils.GObjectRecycler;
         getFromPool(url?: string): GObject;
         returnToPool(obj: GObject): void;
@@ -817,7 +769,7 @@ declare namespace fgui {
         resizeToFit(itemCount?: number, minSize?: number): void;
         getMaxItemWidth(): number;
         protected handleSizeChanged(): void;
-        handleControllerChanged(c: Controller): void;
+        handleControllerChanged(c: controller.Controller): void;
         private updateSelectionController(index);
         getSnappingPosition(xValue: number, yValue: number, resultPoint?: PIXI.Point): PIXI.Point;
         scrollToView(index: number, ani?: boolean, setFirst?: boolean): void;
@@ -1233,7 +1185,6 @@ declare namespace fgui {
         remove(callback: (...args: any[]) => void, thisObj: any): void;
         advance(): void;
         setTicker(ticker: PIXI.ticker.Ticker): void;
-        readonly elapsedMS: number;
     }
 }
 declare namespace fgui {
@@ -1653,6 +1604,85 @@ declare namespace fgui {
         static bringWindowToFrontOnClick: boolean;
     }
 }
+declare namespace fgui.controller {
+    class Action {
+        fromPage: string[];
+        toPage: string[];
+        static create(type: string): Action;
+        execute(controller: Controller, prevPage: string, curPage: string): void;
+        protected enter(controller: Controller): void;
+        protected leave(controller: Controller): void;
+        setup(xml: fgui.utils.XmlNode): void;
+    }
+}
+declare namespace fgui.controller {
+    class ChangePageAction extends Action {
+        objectId: string;
+        controllerName: string;
+        targetPage: string;
+        protected enter(controller: Controller): void;
+        setup(xml: fgui.utils.XmlNode): void;
+    }
+}
+declare namespace fgui.controller {
+    class Controller extends PIXI.utils.EventEmitter {
+        private $name;
+        private $selectedIndex;
+        private $previousIndex;
+        private $pageIds;
+        private $pageNames;
+        private $actions;
+        private static $nextPageId;
+        constructor();
+        name: string;
+        readonly parent: GComponent;
+        selectedIndex: number;
+        setSelectedIndex(value?: number): void;
+        readonly previsousIndex: number;
+        selectedPage: string;
+        setSelectedPage(value: string): void;
+        readonly previousPage: string;
+        readonly pageCount: number;
+        getPageName(index?: number): string;
+        addPage(name?: string): void;
+        addPageAt(name: string, index?: number): void;
+        removePage(name: string): void;
+        removePageAt(index?: number): void;
+        clearPages(): void;
+        hasPage(aName: string): boolean;
+        getPageIndexById(aId: string): number;
+        getPageIdByName(aName: string): string;
+        getPageNameById(aId: string): string;
+        getPageId(index?: number): string;
+        selectedPageId: string;
+        oppositePageId: string;
+        readonly previousPageId: string;
+        executeActions(): void;
+        setup(xml: utils.XmlNode): void;
+    }
+}
+declare namespace fgui.controller {
+    class PageOption {
+        private $controller;
+        private $id;
+        controller: Controller;
+        name: string;
+        index: number;
+        clear(): void;
+        id: string;
+    }
+}
+declare namespace fgui.controller {
+    class PlayTransitionAction extends Action {
+        transitionName: string;
+        repeat: number;
+        delay: number;
+        stopOnExit: boolean;
+        private $currentTransition;
+        protected enter(controller: Controller): void;
+        protected leave(controller: Controller): void;
+    }
+}
 declare namespace fgui {
     type GlyphDictionary = {
         [key: string]: BMGlyph;
@@ -2069,6 +2099,16 @@ declare namespace fgui {
         private loadComponentTranslation(item);
         private loadMovieClip(item);
         private loadFont(item);
+    }
+}
+declare namespace fgui.utils {
+    class AssetLoader extends PIXI.loaders.Loader {
+        protected static $resources: PIXI.loaders.ResourceDictionary;
+        constructor(baseUrl?: string, concurrency?: number);
+        protected _onComplete(): void;
+        static readonly resourcesPool: PIXI.loaders.ResourceDictionary;
+        static destroyResource(key: string): void;
+        static addResources(res: PIXI.loaders.ResourceDictionary): void;
     }
 }
 declare namespace fgui.utils {

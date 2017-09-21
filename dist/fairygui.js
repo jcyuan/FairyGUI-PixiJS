@@ -11,340 +11,6 @@ var __extends = (this && this.__extends) || (function () {
 })();
 var fgui;
 (function (fgui) {
-    var Controller = (function (_super) {
-        __extends(Controller, _super);
-        function Controller() {
-            var _this = _super.call(this) || this;
-            _this.$selectedIndex = 0;
-            _this.$previousIndex = 0;
-            _this.$pageIds = [];
-            _this.$pageNames = [];
-            _this.$selectedIndex = -1;
-            _this.$previousIndex = -1;
-            return _this;
-        }
-        Object.defineProperty(Controller.prototype, "name", {
-            get: function () {
-                return this.$name;
-            },
-            set: function (value) {
-                this.$name = value;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Controller.prototype, "parent", {
-            get: function () {
-                return this.$parent;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Controller.prototype, "selectedIndex", {
-            get: function () {
-                return this.$selectedIndex;
-            },
-            set: function (value) {
-                this.setSelectedIndexInternal(value);
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Controller.prototype.setSelectedIndex = function (value) {
-            if (value === void 0) { value = 0; }
-            this.setSelectedIndexInternal(value, false);
-        };
-        Controller.prototype.setSelectedIndexInternal = function (value, emitEvent) {
-            var _this = this;
-            if (emitEvent === void 0) { emitEvent = true; }
-            if (this.$selectedIndex != value) {
-                if (value > this.$pageIds.length - 1)
-                    throw new Error("index out of bounds: " + value);
-                this.$updating = true;
-                this.$previousIndex = this.$selectedIndex;
-                this.$selectedIndex = value;
-                this.$parent.applyController(this);
-                if (emitEvent !== false)
-                    this.emit("__stateChanged" /* CHANGED */, this);
-                if (this.$playingTransition) {
-                    this.$playingTransition.stop();
-                    this.$playingTransition = null;
-                }
-                if (this.$pageTransitions) {
-                    var len = this.$pageTransitions.length;
-                    for (var i = 0; i < len; i++) {
-                        var pt = this.$pageTransitions[i];
-                        if (pt.toIndex == this.$selectedIndex && (pt.fromIndex == -1 || pt.fromIndex == this.$previousIndex)) {
-                            this.$playingTransition = this.parent.getTransition(pt.transitionName);
-                            break;
-                        }
-                    }
-                    if (this.$playingTransition)
-                        this.$playingTransition.play(function () { _this.$playingTransition = null; }, this);
-                }
-                this.$updating = false;
-            }
-        };
-        Object.defineProperty(Controller.prototype, "previsousIndex", {
-            get: function () {
-                return this.$previousIndex;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Controller.prototype, "selectedPage", {
-            get: function () {
-                if (this.$selectedIndex == -1)
-                    return null;
-                else
-                    return this.$pageNames[this.$selectedIndex];
-            },
-            set: function (val) {
-                var i = this.$pageNames.indexOf(val);
-                if (i == -1)
-                    i = 0;
-                this.selectedIndex = i;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Controller.prototype.setSelectedPage = function (value) {
-            var i = this.$pageNames.indexOf(value);
-            if (i == -1)
-                i = 0;
-            this.setSelectedIndexInternal(i, false);
-        };
-        Object.defineProperty(Controller.prototype, "previousPage", {
-            get: function () {
-                if (this.$previousIndex == -1)
-                    return null;
-                else
-                    return this.$pageNames[this.$previousIndex];
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Controller.prototype, "pageCount", {
-            get: function () {
-                return this.$pageIds.length;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Controller.prototype.getPageName = function (index) {
-            if (index === void 0) { index = 0; }
-            return this.$pageNames[index];
-        };
-        Controller.prototype.addPage = function (name) {
-            if (name === void 0) { name = ""; }
-            this.addPageAt(name, this.$pageIds.length);
-        };
-        Controller.prototype.addPageAt = function (name, index) {
-            if (index === void 0) { index = 0; }
-            var nid = "" + Controller.$nextPageId++;
-            if (index == this.$pageIds.length) {
-                this.$pageIds.push(nid);
-                this.$pageNames.push(name);
-            }
-            else {
-                this.$pageIds.splice(index, 0, nid);
-                this.$pageNames.splice(index, 0, name);
-            }
-        };
-        Controller.prototype.removePage = function (name) {
-            var i = this.$pageNames.indexOf(name);
-            if (i != -1) {
-                this.$pageIds.splice(i, 1);
-                this.$pageNames.splice(i, 1);
-                if (this.$selectedIndex >= this.$pageIds.length)
-                    this.selectedIndex = this.$selectedIndex - 1;
-                else
-                    this.$parent.applyController(this);
-            }
-        };
-        Controller.prototype.removePageAt = function (index) {
-            if (index === void 0) { index = 0; }
-            this.$pageIds.splice(index, 1);
-            this.$pageNames.splice(index, 1);
-            if (this.$selectedIndex >= this.$pageIds.length)
-                this.selectedIndex = this.$selectedIndex - 1;
-            else
-                this.$parent.applyController(this);
-        };
-        Controller.prototype.clearPages = function () {
-            this.$pageIds.length = 0;
-            this.$pageNames.length = 0;
-            if (this.$selectedIndex != -1)
-                this.selectedIndex = -1;
-            else
-                this.$parent.applyController(this);
-        };
-        Controller.prototype.hasPage = function (aName) {
-            return this.$pageNames.indexOf(aName) != -1;
-        };
-        Controller.prototype.getPageIndexById = function (aId) {
-            return this.$pageIds.indexOf(aId);
-        };
-        Controller.prototype.getPageIdByName = function (aName) {
-            var i = this.$pageNames.indexOf(aName);
-            if (i != -1)
-                return this.$pageIds[i];
-            else
-                return null;
-        };
-        Controller.prototype.getPageNameById = function (aId) {
-            var i = this.$pageIds.indexOf(aId);
-            if (i != -1)
-                return this.$pageNames[i];
-            else
-                return null;
-        };
-        Controller.prototype.getPageId = function (index) {
-            if (index === void 0) { index = 0; }
-            return this.$pageIds[index];
-        };
-        Object.defineProperty(Controller.prototype, "selectedPageId", {
-            get: function () {
-                if (this.$selectedIndex == -1)
-                    return null;
-                else
-                    return this.$pageIds[this.$selectedIndex];
-            },
-            set: function (val) {
-                this.selectedIndex = this.$pageIds.indexOf(val);
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Controller.prototype, "oppositePageId", {
-            set: function (val) {
-                var i = this.$pageIds.indexOf(val);
-                if (i > 0)
-                    this.selectedIndex = 0;
-                else if (this.$pageIds.length > 1)
-                    this.selectedIndex = 1;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Controller.prototype, "previousPageId", {
-            get: function () {
-                if (this.$previousIndex == -1)
-                    return null;
-                else
-                    return this.$pageIds[this.$previousIndex];
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Controller.prototype.setup = function (xml) {
-            var _this = this;
-            this.$name = xml.attributes.name;
-            this.$autoRadioGroupDepth = xml.attributes.autoRadioGroupDepth == "true";
-            var str = xml.attributes.pages;
-            if (str) {
-                var arr = str.split(",");
-                var cnt = arr.length;
-                for (var i = 0; i < cnt; i += 2) {
-                    this.$pageIds.push(arr[i]);
-                    this.$pageNames.push(arr[i + 1]);
-                }
-            }
-            str = xml.attributes.transitions;
-            if (str) {
-                this.$pageTransitions = [];
-                var k_1 = 0;
-                str.split(",").forEach(function (str) {
-                    if (str && str.length) {
-                        var pt = new PageTransition();
-                        k_1 = str.indexOf("=");
-                        pt.transitionName = str.substr(k_1 + 1);
-                        str = str.substring(0, k_1);
-                        k_1 = str.indexOf("-");
-                        pt.toIndex = parseInt(str.substring(k_1 + 1));
-                        str = str.substring(0, k_1);
-                        if (str == "*")
-                            pt.fromIndex = -1;
-                        else
-                            pt.fromIndex = parseInt(str);
-                        _this.$pageTransitions.push(pt);
-                    }
-                });
-            }
-            if (this.$parent && this.$pageIds.length > 0)
-                this.$selectedIndex = 0;
-            else
-                this.$selectedIndex = -1;
-        };
-        Controller.$nextPageId = 0;
-        return Controller;
-    }(PIXI.utils.EventEmitter));
-    fgui.Controller = Controller;
-    var PageTransition = (function () {
-        function PageTransition() {
-            this.fromIndex = 0;
-            this.toIndex = 0;
-        }
-        return PageTransition;
-    }());
-})(fgui || (fgui = {}));
-var fgui;
-(function (fgui) {
-    var ControllerPage = (function () {
-        function ControllerPage() {
-        }
-        Object.defineProperty(ControllerPage.prototype, "controller", {
-            set: function (val) {
-                this.$controller = val;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(ControllerPage.prototype, "index", {
-            get: function () {
-                if (this.$id)
-                    return this.$controller.getPageIndexById(this.$id);
-                else
-                    return -1;
-            },
-            set: function (pageIndex) {
-                this.$id = this.$controller.getPageId(pageIndex);
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(ControllerPage.prototype, "name", {
-            get: function () {
-                if (this.$id)
-                    return this.$controller.getPageNameById(this.$id);
-                else
-                    return null;
-            },
-            set: function (pageName) {
-                this.$id = this.$controller.getPageIdByName(pageName);
-            },
-            enumerable: true,
-            configurable: true
-        });
-        ControllerPage.prototype.clear = function () {
-            this.$id = null;
-        };
-        Object.defineProperty(ControllerPage.prototype, "id", {
-            get: function () {
-                return this.$id;
-            },
-            set: function (id) {
-                this.$id = id;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        return ControllerPage;
-    }());
-    fgui.ControllerPage = ControllerPage;
-})(fgui || (fgui = {}));
-var fgui;
-(function (fgui) {
     var win = window;
     var hasPointer = !!(win.PointerEvent || win.MSPointerEvent);
     var hasTouch = 'ontouchstart' in window && PIXI.utils.isMobile.any;
@@ -1399,8 +1065,8 @@ var fgui;
         GObject.prototype.removeClick = function (listener, thisObj) {
             return this.off(fgui.InteractiveEvents.Click, listener, thisObj);
         };
-        GObject.prototype.hasClick = function () {
-            return this.hasListener(fgui.InteractiveEvents.Click);
+        GObject.prototype.hasClick = function (fn) {
+            return this.hasListener(fgui.InteractiveEvents.Click, fn);
         };
         GObject.prototype.on = function (type, listener, thisObject) {
             if (type == null)
@@ -1421,8 +1087,11 @@ var fgui;
             this.$displayObject.once(type, listener, thisObject);
             return this;
         };
-        GObject.prototype.hasListener = function (event) {
-            return this.$displayObject.listeners(event, true);
+        GObject.prototype.hasListener = function (event, handler) {
+            if (!handler)
+                return this.$displayObject.listeners(event, true);
+            else
+                return this.$displayObject.listeners(event).indexOf(handler) >= 0;
         };
         GObject.prototype.emit = function (event) {
             var args = [];
@@ -2146,9 +1815,12 @@ var fgui;
             }
         };
         GComponent.prototype.applyController = function (c) {
+            this.$applyingController = c;
             this.$children.forEach(function (child) {
                 child.handleControllerChanged(c);
             });
+            this.$applyingController = null;
+            c.executeActions();
         };
         GComponent.prototype.applyAllControllers = function () {
             var _this = this;
@@ -2168,8 +1840,11 @@ var fgui;
                         maxIndex = i;
                 }
             });
-            if (myIndex < maxIndex)
+            if (myIndex < maxIndex) {
+                if (this.$applyingController != null)
+                    this.$children[maxIndex].handleControllerChanged(this.$applyingController); //TODO: twice
                 this.swapChildrenAt(myIndex, maxIndex);
+            }
         };
         GComponent.prototype.getTransitionAt = function (index) {
             return this.$transitions[index];
@@ -2247,10 +1922,13 @@ var fgui;
             get: function () {
                 return this.$rootContainer.mask;
             },
-            set: function (value) {
-                if (value instanceof PIXI.Graphics)
-                    value.isMask = true;
-                this.$rootContainer.mask = value;
+            set: function (obj) {
+                if (!obj)
+                    return;
+                obj.interactive = obj.interactiveChildren = false;
+                if (obj instanceof PIXI.Graphics)
+                    obj.isMask = true;
+                this.$rootContainer.mask = obj;
             },
             enumerable: true,
             configurable: true
@@ -2553,10 +2231,10 @@ var fgui;
             var col = xml.children;
             col.forEach(function (cxml) {
                 if (cxml.nodeName == "controller") {
-                    var controller = new fgui.Controller();
-                    _this.$controllers.push(controller);
-                    controller.$parent = _this;
-                    controller.setup(cxml);
+                    var c = new fgui.controller.Controller();
+                    _this.$controllers.push(c);
+                    c.$parent = _this;
+                    c.setup(cxml);
                 }
             });
             var displayList = this.packageItem.displayList;
@@ -2585,11 +2263,8 @@ var fgui;
             str = xml.attributes.mask;
             if (str) {
                 var maskObj = this.getChildById(str).displayObject;
-                if (maskObj instanceof PIXI.Graphics || maskObj instanceof PIXI.Sprite) {
-                    if (maskObj instanceof PIXI.Graphics)
-                        maskObj.isMask = true;
+                if (maskObj instanceof PIXI.Graphics || maskObj instanceof PIXI.Sprite)
                     this.mask = maskObj;
-                }
                 else
                     throw new Error("only PIXI.Sprite or PIXI.Graphics can be applied as mask object");
             }
@@ -2641,7 +2316,7 @@ var fgui;
             _this.$mode = 0 /* Common */;
             _this.$title = "";
             _this.$icon = "";
-            _this.$pageOption = new fgui.ControllerPage();
+            _this.$pageOption = new fgui.controller.PageOption();
             _this.$changeStateOnClick = true;
             _this.$downEffect = 0;
             _this.$downEffectValue = 0.8;
@@ -7011,7 +6686,7 @@ var fgui;
             for (var _i = 0; _i < arguments.length; _i++) {
                 args[_i] = arguments[_i];
             }
-            this.$movieClip.setPlaySettings(args);
+            this.$movieClip.setPlaySettings.apply(this.$movieClip, args);
         };
         GMovieClip.prototype.constructFromResource = function () {
             this.$sourceWidth = this.packageItem.width;
@@ -8934,15 +8609,22 @@ var fgui;
             while (this.$enumIdx < this.$enumCount) {
                 var item = this.$items[this.$enumIdx];
                 this.$enumIdx++;
-                if (item.advance(this.$ticker.elapsedMS)) {
+                var ms = this.$ticker.elapsedMS;
+                if (item.advance(ms)) {
                     if (item.end) {
                         this.$enumIdx--;
                         this.$enumCount--;
                         this.$items.splice(this.$enumIdx, 1);
                         this.$itemPool.push(item);
                     }
-                    if (item.callback)
-                        item.param && item.param.length ? item.callback.apply(item.thisObj, item.param) : item.callback.call(item.thisObj, item.param);
+                    if (item.callback) {
+                        var args = [ms];
+                        if (item.param && item.param instanceof Array)
+                            args = item.param.concat(args);
+                        else if (item.param !== void 0)
+                            args.unshift(item.param);
+                        item.callback.apply(item.thisObj, args);
+                    }
                 }
             }
         };
@@ -8954,15 +8636,6 @@ var fgui;
             if (!this.$ticker.started)
                 this.$ticker.start();
         };
-        Object.defineProperty(GTimer.prototype, "elapsedMS", {
-            get: function () {
-                if (!this.$ticker)
-                    return 0;
-                return this.$ticker.elapsedMS;
-            },
-            enumerable: true,
-            configurable: true
-        });
         GTimer.inst = new GTimer();
         return GTimer;
     }());
@@ -11427,7 +11100,7 @@ var fgui;
             this.prepareValue(item, toProps, this.$reversed);
             item.tweener = createjs.Tween.get(item.value, {
                 onChange: fgui.utils.Binder.create(this.$tweenUpdate, this, item)
-            }).to(toProps, item.duration * 1000, item.easeType).call(completeHandler);
+            }, null, true).to(toProps, item.duration * 1000, item.easeType).call(completeHandler);
             if (item.hook != null)
                 item.hook.call(item.hookObj);
         };
@@ -11473,7 +11146,7 @@ var fgui;
                 this.disposeTween(item);
                 item.tweener = createjs.Tween.get(item.value, {
                     onChange: fgui.utils.Binder.create(this.$tweenUpdate, this, item)
-                }).to(toProps, item.duration * 1000, item.easeType).call(this.$tweenRepeatComplete, [null, item], this);
+                }, null, true).to(toProps, item.duration * 1000, item.easeType).call(this.$tweenRepeatComplete, [null, item], this);
             }
             else
                 this.$tweenComplete(null, item);
@@ -11486,7 +11159,7 @@ var fgui;
                 item.tweener.removeAllEventListeners();
                 createjs.Tween.removeTweens(item.value);
             }
-            else
+            else if (item.tweener)
                 item.tweener.setPaused(true);
             item.tweener = null;
         };
@@ -11629,7 +11302,7 @@ var fgui;
             item.target.$gearLocked = false;
         };
         /**@internal */
-        Transition.prototype.$shakeItem = function (item) {
+        Transition.prototype.$shakeItem = function (item, elapsedMS) {
             var r = Math.ceil(item.value.f1 * item.startValue.f3 / item.value.f2);
             var rx = (Math.random() * 2 - 1) * r;
             var ry = (Math.random() * 2 - 1) * r;
@@ -11640,7 +11313,7 @@ var fgui;
             item.target.$gearLocked = false;
             item.startValue.f1 = rx;
             item.startValue.f2 = ry;
-            item.startValue.f3 -= fgui.GTimer.inst.elapsedMS / 1000;
+            item.startValue.f3 -= elapsedMS / 1000;
             if (item.startValue.f3 <= 0) {
                 item.target.$gearLocked = true;
                 item.target.setXY(item.target.x - item.startValue.f1, item.target.y - item.startValue.f2);
@@ -11862,8 +11535,8 @@ var fgui;
             this.endValue = new TransitionValue();
         }
         /**@internal */
-        TransitionItem.prototype.$shake = function (trans) {
-            trans.$shakeItem(this);
+        TransitionItem.prototype.$shake = function (trans, elapsedMS) {
+            trans.$shakeItem(this, elapsedMS);
         };
         return TransitionItem;
     }());
@@ -12193,6 +11866,463 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
+    var controller;
+    (function (controller_1) {
+        var Action = (function () {
+            function Action() {
+            }
+            Action.create = function (type) {
+                switch (type) {
+                    case "play_transition":
+                        return new controller_1.PlayTransitionAction();
+                    case "change_page":
+                        return new controller_1.ChangePageAction();
+                }
+                return null;
+            };
+            Action.prototype.execute = function (controller, prevPage, curPage) {
+                if ((!this.fromPage || this.fromPage.length == 0 || this.fromPage.indexOf(prevPage) != -1)
+                    && (!this.toPage || this.toPage.length == 0 || this.toPage.indexOf(curPage) != -1))
+                    this.enter(controller);
+                else
+                    this.leave(controller);
+            };
+            Action.prototype.enter = function (controller) {
+            };
+            Action.prototype.leave = function (controller) {
+            };
+            Action.prototype.setup = function (xml) {
+                var str;
+                str = xml.attributes.fromPage;
+                if (str)
+                    this.fromPage = str.split(",");
+                str = xml.attributes.toPage;
+                if (str)
+                    this.toPage = str.split(",");
+            };
+            return Action;
+        }());
+        controller_1.Action = Action;
+    })(controller = fgui.controller || (fgui.controller = {}));
+})(fgui || (fgui = {}));
+var fgui;
+(function (fgui) {
+    var controller;
+    (function (controller_2) {
+        var ChangePageAction = (function (_super) {
+            __extends(ChangePageAction, _super);
+            function ChangePageAction() {
+                return _super !== null && _super.apply(this, arguments) || this;
+            }
+            ChangePageAction.prototype.enter = function (controller) {
+                if (!this.controllerName)
+                    return;
+                var gcom;
+                if (this.objectId)
+                    gcom = controller.parent.getChildById(this.objectId);
+                else
+                    gcom = controller.parent;
+                if (gcom) {
+                    var cc = gcom.getController(this.controllerName);
+                    if (cc && cc != controller && !cc.$updating)
+                        cc.selectedPageId = this.targetPage;
+                }
+            };
+            ChangePageAction.prototype.setup = function (xml) {
+                _super.prototype.setup.call(this, xml);
+                this.objectId = xml.attributes.objectId;
+                this.controllerName = xml.attributes.controller;
+                this.targetPage = xml.attributes.targetPage;
+            };
+            return ChangePageAction;
+        }(controller_2.Action));
+        controller_2.ChangePageAction = ChangePageAction;
+    })(controller = fgui.controller || (fgui.controller = {}));
+})(fgui || (fgui = {}));
+var fgui;
+(function (fgui) {
+    var controller;
+    (function (controller) {
+        var Controller = (function (_super) {
+            __extends(Controller, _super);
+            function Controller() {
+                var _this = _super.call(this) || this;
+                _this.$selectedIndex = 0;
+                _this.$previousIndex = 0;
+                _this.$pageIds = [];
+                _this.$pageNames = [];
+                _this.$selectedIndex = -1;
+                _this.$previousIndex = -1;
+                return _this;
+            }
+            Object.defineProperty(Controller.prototype, "name", {
+                get: function () {
+                    return this.$name;
+                },
+                set: function (value) {
+                    this.$name = value;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(Controller.prototype, "parent", {
+                get: function () {
+                    return this.$parent;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(Controller.prototype, "selectedIndex", {
+                get: function () {
+                    return this.$selectedIndex;
+                },
+                set: function (value) {
+                    if (this.$selectedIndex != value) {
+                        if (value > this.$pageIds.length - 1)
+                            throw new Error("index out of range: " + value);
+                        this.$updating = true;
+                        this.$previousIndex = this.$selectedIndex;
+                        this.$selectedIndex = value;
+                        this.$parent.applyController(this);
+                        this.emit("__stateChanged" /* CHANGED */, this);
+                        this.$updating = false;
+                    }
+                },
+                enumerable: true,
+                configurable: true
+            });
+            //same effect as selectedIndex but without event emitted
+            Controller.prototype.setSelectedIndex = function (value) {
+                if (value === void 0) { value = 0; }
+                if (this.$selectedIndex != value) {
+                    if (value > this.$pageIds.length - 1)
+                        throw new Error("index out of range: " + value);
+                    this.$updating = true;
+                    this.$previousIndex = this.$selectedIndex;
+                    this.$selectedIndex = value;
+                    this.$parent.applyController(this);
+                    this.$updating = false;
+                }
+            };
+            Object.defineProperty(Controller.prototype, "previsousIndex", {
+                get: function () {
+                    return this.$previousIndex;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(Controller.prototype, "selectedPage", {
+                get: function () {
+                    if (this.$selectedIndex == -1)
+                        return null;
+                    else
+                        return this.$pageNames[this.$selectedIndex];
+                },
+                set: function (val) {
+                    this.selectedIndex = Math.max(0, this.$pageNames.indexOf(val));
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Controller.prototype.setSelectedPage = function (value) {
+                this.setSelectedIndex(Math.max(0, this.$pageNames.indexOf(value)));
+            };
+            Object.defineProperty(Controller.prototype, "previousPage", {
+                get: function () {
+                    if (this.$previousIndex == -1)
+                        return null;
+                    else
+                        return this.$pageNames[this.$previousIndex];
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(Controller.prototype, "pageCount", {
+                get: function () {
+                    return this.$pageIds.length;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Controller.prototype.getPageName = function (index) {
+                if (index === void 0) { index = 0; }
+                return this.$pageNames[index];
+            };
+            Controller.prototype.addPage = function (name) {
+                if (name === void 0) { name = ""; }
+                this.addPageAt(name, this.$pageIds.length);
+            };
+            Controller.prototype.addPageAt = function (name, index) {
+                if (index === void 0) { index = 0; }
+                var nid = "" + Controller.$nextPageId++;
+                if (index == this.$pageIds.length) {
+                    this.$pageIds.push(nid);
+                    this.$pageNames.push(name);
+                }
+                else {
+                    this.$pageIds.splice(index, 0, nid);
+                    this.$pageNames.splice(index, 0, name);
+                }
+            };
+            Controller.prototype.removePage = function (name) {
+                var i = this.$pageNames.indexOf(name);
+                if (i != -1) {
+                    this.$pageIds.splice(i, 1);
+                    this.$pageNames.splice(i, 1);
+                    if (this.$selectedIndex >= this.$pageIds.length)
+                        this.selectedIndex = this.$selectedIndex - 1;
+                    else
+                        this.$parent.applyController(this);
+                }
+            };
+            Controller.prototype.removePageAt = function (index) {
+                if (index === void 0) { index = 0; }
+                this.$pageIds.splice(index, 1);
+                this.$pageNames.splice(index, 1);
+                if (this.$selectedIndex >= this.$pageIds.length)
+                    this.selectedIndex = this.$selectedIndex - 1;
+                else
+                    this.$parent.applyController(this);
+            };
+            Controller.prototype.clearPages = function () {
+                this.$pageIds.length = 0;
+                this.$pageNames.length = 0;
+                if (this.$selectedIndex != -1)
+                    this.selectedIndex = -1;
+                else
+                    this.$parent.applyController(this);
+            };
+            Controller.prototype.hasPage = function (aName) {
+                return this.$pageNames.indexOf(aName) >= 0;
+            };
+            Controller.prototype.getPageIndexById = function (aId) {
+                return this.$pageIds.indexOf(aId);
+            };
+            Controller.prototype.getPageIdByName = function (aName) {
+                var i = this.$pageNames.indexOf(aName);
+                if (i != -1)
+                    return this.$pageIds[i];
+                else
+                    return null;
+            };
+            Controller.prototype.getPageNameById = function (aId) {
+                var i = this.$pageIds.indexOf(aId);
+                if (i != -1)
+                    return this.$pageNames[i];
+                else
+                    return null;
+            };
+            Controller.prototype.getPageId = function (index) {
+                if (index === void 0) { index = 0; }
+                return this.$pageIds[index];
+            };
+            Object.defineProperty(Controller.prototype, "selectedPageId", {
+                get: function () {
+                    if (this.$selectedIndex == -1)
+                        return null;
+                    else
+                        return this.$pageIds[this.$selectedIndex];
+                },
+                set: function (val) {
+                    this.selectedIndex = this.$pageIds.indexOf(val);
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(Controller.prototype, "oppositePageId", {
+                set: function (val) {
+                    var i = this.$pageIds.indexOf(val);
+                    if (i > 0)
+                        this.selectedIndex = 0;
+                    else if (this.$pageIds.length > 1)
+                        this.selectedIndex = 1;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(Controller.prototype, "previousPageId", {
+                get: function () {
+                    if (this.$previousIndex == -1)
+                        return null;
+                    else
+                        return this.$pageIds[this.$previousIndex];
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Controller.prototype.executeActions = function () {
+                var _this = this;
+                if (this.$actions && this.$actions.length > 0) {
+                    this.$actions.forEach(function (a) {
+                        a.execute(_this, _this.previousPageId, _this.selectedPageId);
+                    });
+                }
+            };
+            Controller.prototype.setup = function (xml) {
+                var _this = this;
+                this.$name = xml.attributes.name;
+                this.$autoRadioGroupDepth = xml.attributes.autoRadioGroupDepth == "true";
+                var str = xml.attributes.pages;
+                if (str) {
+                    var arr = str.split(",");
+                    var cnt = arr.length;
+                    for (var i = 0; i < cnt; i += 2) {
+                        this.$pageIds.push(arr[i]);
+                        this.$pageNames.push(arr[i + 1]);
+                    }
+                }
+                var col = xml.children;
+                if (col.length > 0) {
+                    this.$actions = this.$actions || [];
+                    col.forEach(function (cxml) {
+                        var action = controller.Action.create(cxml.attributes.type);
+                        action.setup(cxml);
+                        _this.$actions.push(action);
+                    });
+                }
+                str = xml.attributes.transitions;
+                if (str) {
+                    this.$actions = this.$actions || [];
+                    var k_1, e_1;
+                    str.split(",").forEach(function (str) {
+                        if (str && str.length) {
+                            var pt = new controller.PlayTransitionAction();
+                            k_1 = str.indexOf("=");
+                            pt.transitionName = str.substr(k_1 + 1);
+                            str = str.substring(0, k_1);
+                            k_1 = str.indexOf("-");
+                            e_1 = parseInt(str.substring(k_1 + 1));
+                            if (e_1 < _this.$pageIds.length)
+                                pt.toPage = [_this.$pageIds[e_1]];
+                            str = str.substring(0, k_1);
+                            if (str != "*") {
+                                e_1 = parseInt(str);
+                                if (e_1 < _this.$pageIds.length)
+                                    pt.fromPage = [_this.$pageIds[e_1]];
+                            }
+                            pt.stopOnExit = true;
+                            _this.$actions.push(pt);
+                        }
+                    });
+                }
+                if (this.$parent && this.$pageIds.length > 0)
+                    this.$selectedIndex = 0;
+                else
+                    this.$selectedIndex = -1;
+            };
+            Controller.$nextPageId = 0;
+            return Controller;
+        }(PIXI.utils.EventEmitter));
+        controller.Controller = Controller;
+    })(controller = fgui.controller || (fgui.controller = {}));
+})(fgui || (fgui = {}));
+var fgui;
+(function (fgui) {
+    var controller;
+    (function (controller) {
+        var PageOption = (function () {
+            function PageOption() {
+            }
+            Object.defineProperty(PageOption.prototype, "controller", {
+                set: function (val) {
+                    this.$controller = val;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(PageOption.prototype, "name", {
+                get: function () {
+                    if (this.$id)
+                        return this.$controller.getPageNameById(this.$id);
+                    else
+                        return null;
+                },
+                set: function (pageName) {
+                    this.$id = this.$controller.getPageIdByName(pageName);
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(PageOption.prototype, "index", {
+                get: function () {
+                    if (this.$id)
+                        return this.$controller.getPageIndexById(this.$id);
+                    else
+                        return -1;
+                },
+                set: function (pageIndex) {
+                    this.$id = this.$controller.getPageId(pageIndex);
+                },
+                enumerable: true,
+                configurable: true
+            });
+            PageOption.prototype.clear = function () {
+                this.$id = null;
+            };
+            Object.defineProperty(PageOption.prototype, "id", {
+                get: function () {
+                    return this.$id;
+                },
+                set: function (id) {
+                    this.$id = id;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            return PageOption;
+        }());
+        controller.PageOption = PageOption;
+    })(controller = fgui.controller || (fgui.controller = {}));
+})(fgui || (fgui = {}));
+var fgui;
+(function (fgui) {
+    var controller;
+    (function (controller_3) {
+        var PlayTransitionAction = (function (_super) {
+            __extends(PlayTransitionAction, _super);
+            function PlayTransitionAction() {
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this.repeat = 1;
+                _this.delay = 0;
+                _this.stopOnExit = false;
+                return _this;
+            }
+            PlayTransitionAction.prototype.enter = function (controller) {
+                var trans = controller.parent.getTransition(this.transitionName);
+                if (trans) {
+                    if (this.$currentTransition && this.$currentTransition.playing)
+                        trans.changeRepeat(this.repeat);
+                    else
+                        trans.play(null, this.repeat, this.delay);
+                    this.$currentTransition = trans;
+                }
+            };
+            PlayTransitionAction.prototype.leave = function (controller) {
+                if (this.stopOnExit && this.$currentTransition) {
+                    this.$currentTransition.stop();
+                    this.$currentTransition = null;
+                }
+            };
+            /**@internal */
+            PlayTransitionAction.prototype.setup = function (xml) {
+                _super.prototype.setup.call(this, xml);
+                this.transitionName = xml.attributes.transition;
+                var str;
+                str = xml.attributes.repeat;
+                if (str)
+                    this.repeat = parseInt(str);
+                str = xml.attributes.delay;
+                if (str)
+                    this.delay = parseFloat(str);
+                this.stopOnExit = xml.attributes.stopOnExit == "true";
+            };
+            return PlayTransitionAction;
+        }(controller_3.Action));
+        controller_3.PlayTransitionAction = PlayTransitionAction;
+    })(controller = fgui.controller || (fgui.controller = {}));
+})(fgui || (fgui = {}));
+var fgui;
+(function (fgui) {
     var BitmapFont = (function () {
         function BitmapFont() {
             this.size = 0;
@@ -12370,6 +12500,8 @@ var fgui;
             this.currentFrame = this.$settings.startFrame;
         };
         MovieClip.prototype.update = function () {
+            if (this.UIOwner.$inProgressBuilding)
+                return;
             if (this.$playing && this.$frameCount != 0 && this.$status != 3 /* ENDED */) {
                 this.data.update(this);
                 if (this.$currentFrame != this.data.currentFrame) {
@@ -12413,7 +12545,8 @@ var fgui;
             }
         };
         MovieClip.prototype.setFrame = function (frame) {
-            this.texture = frame == null ? null : frame.texture;
+            this._texture = frame == null ? null : frame.texture;
+            this._textureID = -1;
         };
         MovieClip.prototype.added = function (disp) {
             if (this.$playing)
@@ -13407,9 +13540,9 @@ var fgui;
         UIPackage.prototype.create = function (resKey) {
             var _this = this;
             this.$resKey = resKey;
-            var buf = PIXI.loader.resources[this.$resKey];
+            var buf = fgui.utils.AssetLoader.resourcesPool[this.$resKey];
             if (!buf)
-                buf = PIXI.loader.resources[this.$resKey + "_fui"];
+                buf = fgui.utils.AssetLoader.resourcesPool[this.$resKey + "_fui"];
             if (!buf)
                 throw new Error("Resource '" + this.$resKey + "' not found, please make sure that this resource has been added into the resource library by calling PIXI.loader.add method.");
             if (!buf.data || !(buf.data instanceof ArrayBuffer))
@@ -13519,6 +13652,7 @@ var fgui;
             }
         };
         UIPackage.prototype.dispose = function () {
+            var _this = this;
             this.$items.forEach(function (pi) {
                 var texture = pi.texture;
                 if (texture != null) {
@@ -13536,10 +13670,13 @@ var fgui;
                         }
                     });
                 }
-                else if (pi.bitmapFont != null) {
+                else if (pi.bitmapFont != null)
                     delete UIPackage.$bitmapFonts[pi.bitmapFont.id];
-                }
-            });
+                var cfg = _this.$atlasConfigs[pi.id];
+                if (cfg)
+                    fgui.utils.AssetLoader.destroyResource(_this.$resKey + "@" + cfg.atlasName);
+            }, this);
+            fgui.utils.AssetLoader.destroyResource("" + this.$resKey);
         };
         Object.defineProperty(UIPackage.prototype, "id", {
             get: function () {
@@ -13632,12 +13769,12 @@ var fgui;
                         item.decoded = true;
                         var fileName = (item.file != null && item.file.length > 0) ? item.file : (item.id + ".png");
                         var resName = this.$resKey + "@" + fgui.utils.StringUtil.getFileName(fileName);
-                        var res = PIXI.loader.resources[resName];
+                        var res = fgui.utils.AssetLoader.resourcesPool[resName];
                         if (!res)
-                            throw new Error(resName + " not found in the shared PIXI.loader.resources library, please check");
+                            throw new Error(resName + " not found in fgui.utils.AssetLoader.resourcesPool, please use new AssetLoader() to load assets instead of using new PIXI.loaders.Loader(). besides, AssetLoader is a sub-class from PIXI.loaders.Loader so they have the same usage.");
                         item.texture = res.texture;
                         if (!item.texture) {
-                            res = PIXI.loader.resources[this.$resKey + "@" + fileName.replace("\.", "_")];
+                            res = fgui.utils.AssetLoader.resourcesPool[this.$resKey + "@" + fileName.replace("\.", "_")];
                             item.texture = res.texture;
                         }
                     }
@@ -13668,7 +13805,7 @@ var fgui;
                     }
                     return item.componentData;
                 default:
-                    return PIXI.loader.resources[this.$resKey + "@" + item.id];
+                    return fgui.utils.AssetLoader.resourcesPool[this.$resKey + "@" + item.id];
             }
         };
         UIPackage.prototype.loadComponentChildren = function (item) {
@@ -13813,21 +13950,23 @@ var fgui;
                 var frame = new fgui.Frame();
                 str = node.attributes.rect;
                 var arr = str.split(UIPackage.sep0);
-                var frameRect = new PIXI.Rectangle(parseInt(arr[0]), parseInt(arr[1]), parseInt(arr[2]), parseInt(arr[3]));
+                var trimRect = new PIXI.Rectangle(parseInt(arr[0]), parseInt(arr[1]), parseInt(arr[2]), parseInt(arr[3]));
                 str = node.attributes.addDelay;
                 if (str)
                     frame.addDelay = parseInt(str);
                 item.frames.push(frame);
-                if (frameRect.width <= 0 || frameRect.height <= 0)
+                if (trimRect.width <= 0)
                     return;
                 str = node.attributes.sprite;
                 if (str)
                     str = item.id + "_" + str;
                 else
                     str = item.id + "_" + index;
-                var spr = _this.$atlasConfigs[str];
-                if (spr != null)
-                    frame.texture = _this.createSpriteTexture(str, spr);
+                var cfg = _this.$atlasConfigs[str];
+                if (cfg != null) {
+                    cfg.trim = trimRect;
+                    frame.texture = _this.createSpriteTexture(str, cfg);
+                }
             });
         };
         UIPackage.prototype.loadFont = function (item) {
@@ -13953,6 +14092,53 @@ var fgui;
         return UIPackage;
     }());
     fgui.UIPackage = UIPackage;
+})(fgui || (fgui = {}));
+var fgui;
+(function (fgui) {
+    var utils;
+    (function (utils) {
+        var AssetLoader = (function (_super) {
+            __extends(AssetLoader, _super);
+            function AssetLoader(baseUrl, concurrency) {
+                return _super.call(this, baseUrl, concurrency) || this;
+            }
+            AssetLoader.prototype._onComplete = function () {
+                AssetLoader.addResources(this.resources);
+                _super.prototype._onComplete.call(this);
+            };
+            ;
+            Object.defineProperty(AssetLoader, "resourcesPool", {
+                get: function () {
+                    return AssetLoader.$resources;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            AssetLoader.destroyResource = function (key) {
+                var res = AssetLoader.$resources[key];
+                if (res) {
+                    if (!res.isComplete)
+                        res.abort();
+                    res.children = null;
+                    res.data = null;
+                    res.texture && res.texture.destroy();
+                    res.textures = null;
+                    res.xhr = null;
+                    AssetLoader.$resources[key] = null;
+                    delete AssetLoader.$resources[key];
+                }
+            };
+            AssetLoader.addResources = function (res) {
+                if (!res)
+                    return;
+                for (var key in res)
+                    AssetLoader.$resources[key] = res[key];
+            };
+            AssetLoader.$resources = {};
+            return AssetLoader;
+        }(PIXI.loaders.Loader));
+        utils.AssetLoader = AssetLoader;
+    })(utils = fgui.utils || (fgui.utils = {}));
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
