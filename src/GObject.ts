@@ -571,10 +571,14 @@ namespace fgui {
                     case GearType.Color:
                         if (fgui.isColorGear(this))
                             gear = new GearColor(this);
+                        else
+                            throw new Error(`Invalid component type to add GearColor feature, please check the component named ${this.$name} in the Editor.`);
                         break;
                     case GearType.Animation:
                         if (fgui.isAnimationGear(this))
                             gear = new GearAnimation(this);
+                        else
+                            throw new Error(`Invalid component type to add GearAnimation feature, please check the component named ${this.$name} in the Editor.`);
                         break;
                     case GearType.Text:
                         gear = new GearText(this);
@@ -583,7 +587,7 @@ namespace fgui {
                         gear = new GearIcon(this);
                         break;
                     default:
-                        throw "FGUI: invalid gear index!";
+                        throw new Error("FGUI: invalid gear type");
                 }
                 this.$gears[index] = gear;
             }
