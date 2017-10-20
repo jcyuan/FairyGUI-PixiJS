@@ -80,14 +80,15 @@ namespace fgui {
                 leading: 3,
                 fill: 0
             });
-            this.verticalAlign = VertAlignType.Top;
-            this.text = "";
-
+            this.$verticalAlign = VertAlignType.Top;
+            this.$text = "";
             this.$autoSize = AutoSizeType.Both;
             this.$widthAutoSize = true;
             this.$heightAutoSize = true;
 
             this.$bitmapPool = [];
+
+            this.touchable = false;  //base GTextField has no interaction
         }
 
         protected createDisplayObject(): void {
@@ -114,16 +115,12 @@ namespace fgui {
             super.dispose();
         }
 
-        public get touchable(): boolean {
-            return false;
-        }
+        public set text(value:string) {
+            this.setText(value);
 
-        public set touchable(value: boolean) {
-            this.$touchable = false;  //base GTextField has no interaction
         }
-
-        public set text(value: string) {
-            value = value || "";
+        protected setText(value: string):void {
+            if(value == null) value = "";
             if (this.$text == value) return;
             this.$text = value;
             this.updateGear(GearType.Text);
@@ -134,20 +131,32 @@ namespace fgui {
         }
 
         public get text(): string {
+            return this.getText();
+        }
+
+        protected getText():string {
             return this.$text;
         }
 
         public get color(): number {
+            return this.getColor();
+        }
+
+        protected getColor():number {
             return this.$color;
         }
 
-        public set color(value: number) {
+        protected setColor(value:number):void {
             if (this.$color != value) {
                 this.$color = value;
                 this.updateGear(GearType.Color);
                 this.$style.fill = this.$color;
                 this.render();
             }
+        }
+
+        public set color(value: number) {
+            this.setColor(value);
         }
 
         public get titleColor(): number {
