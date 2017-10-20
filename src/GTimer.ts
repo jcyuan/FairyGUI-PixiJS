@@ -102,6 +102,9 @@ namespace fgui {
                             args.unshift(item.param);
                         item.callback.apply(item.thisObj, args);
                     }
+
+                    if(item.end)
+                        item.callback = item.thisObj = item.param = null;
                 }
             }
         }
