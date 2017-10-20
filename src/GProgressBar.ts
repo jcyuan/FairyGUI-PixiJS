@@ -30,11 +30,6 @@ namespace fgui {
             this.$max = 100;
         }
 
-        protected createDisplayObject():void {
-            super.createDisplayObject();
-            this.$displayObject.interactive = this.$displayObject.interactiveChildren = false;
-        }
-
         public get titleType(): ProgressTitleType {
             return this.$titleType;
         }
