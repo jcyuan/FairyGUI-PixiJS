@@ -8,6 +8,8 @@ namespace fgui {
 
     export class GRoot extends GComponent {
 
+        private static uniqueID:number = 0;
+
         private $uiStage: UIStage;
 
         private $modalLayer: GGraph;
@@ -18,6 +20,7 @@ namespace fgui {
         private $tooltipWin: GObject;
         private $defaultTooltipWin: GObject;
         private $checkingPopups:boolean;
+        private $uid:number;
 
         private static $inst: GRoot;
 
@@ -81,6 +84,12 @@ namespace fgui {
             this.opaque = false;
             this.$popupStack = []
             this.$justClosedPopups = [];
+
+            this.$uid = GRoot.uniqueID++;
+        }
+
+        public get uniqueID():number {
+            return this.$uid;
         }
 
         public get stageWidth(): number {
