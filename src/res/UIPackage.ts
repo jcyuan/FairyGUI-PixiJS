@@ -216,10 +216,10 @@ namespace fgui {
             if (!buf)
                 buf = utils.AssetLoader.resourcesPool[`${this.$resKey}_fui`];
             if (!buf)
-                throw new Error(`Resource '${this.$resKey}' not found, please make sure that this resource has been added into the resource library by calling PIXI.loader.add method.`);
+                throw new Error(`Resource '${this.$resKey}' not found, please make sure that you use "new fgui.utils.AssetLoader" to load resources instead of " PIXI.loaders.Loader".`);
 
             if (!buf.data || !(buf.data instanceof ArrayBuffer))
-                throw new Error(`Resource '${this.$resKey}' is not a proper binary resource, please load it as binary format by calling loader.add(name, url, { loadType:PIXI.loaders.Resource.LOAD_TYPE.XHR, xhrType: PIXI.loaders.Resource.XHR_RESPONSE_TYPE.BUFFER })`);
+                throw new Error(`Resource '${this.$resKey}' is not a proper binary resource, please load it as binary format by calling yourLoader.add(name, url, { loadType:PIXI.loaders.Resource.LOAD_TYPE.XHR, xhrType: PIXI.loaders.Resource.XHR_RESPONSE_TYPE.BUFFER })`);
 
             this.decompressPackage(buf.data);
 
