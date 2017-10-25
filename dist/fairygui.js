@@ -924,10 +924,14 @@ var fgui;
                     case 4 /* Color */:
                         if (fgui.isColorGear(this))
                             gear = new fgui.GearColor(this);
+                        else
+                            throw new Error("Invalid component type to add GearColor feature, please check the component named " + this.$name + " in the Editor.");
                         break;
                     case 5 /* Animation */:
                         if (fgui.isAnimationGear(this))
                             gear = new fgui.GearAnimation(this);
+                        else
+                            throw new Error("Invalid component type to add GearAnimation feature, please check the component named " + this.$name + " in the Editor.");
                         break;
                     case 6 /* Text */:
                         gear = new fgui.GearText(this);
@@ -936,7 +940,7 @@ var fgui;
                         gear = new fgui.GearIcon(this);
                         break;
                     default:
-                        throw "FGUI: invalid gear index!";
+                        throw new Error("FGUI: invalid gear type");
                 }
                 this.$gears[index] = gear;
             }
@@ -6737,10 +6741,6 @@ var fgui;
             _this.$max = 100;
             return _this;
         }
-        GProgressBar.prototype.createDisplayObject = function () {
-            _super.prototype.createDisplayObject.call(this);
-            this.$displayObject.interactive = this.$displayObject.interactiveChildren = false;
-        };
         Object.defineProperty(GProgressBar.prototype, "titleType", {
             get: function () {
                 return this.$titleType;
@@ -6949,12 +6949,13 @@ var fgui;
                 leading: 3,
                 fill: 0
             });
-            _this.verticalAlign = 0 /* Top */;
-            _this.text = "";
+            _this.$verticalAlign = 0 /* Top */;
+            _this.$text = "";
             _this.$autoSize = 1 /* Both */;
             _this.$widthAutoSize = true;
             _this.$heightAutoSize = true;
             _this.$bitmapPool = [];
+            _this.touchable = false; //base GTextField has no interaction
             return _this;
         }
         GTextField.prototype.createDisplayObject = function () {
@@ -6978,49 +6979,52 @@ var fgui;
             this.$style = null;
             _super.prototype.dispose.call(this);
         };
-        Object.defineProperty(GTextField.prototype, "touchable", {
-            get: function () {
-                return false;
-            },
-            set: function (value) {
-                this.$touchable = false; //base GTextField has no interaction
-            },
-            enumerable: true,
-            configurable: true
-        });
         Object.defineProperty(GTextField.prototype, "text", {
             get: function () {
-                return this.$text;
+                return this.getText();
             },
             set: function (value) {
-                value = value || "";
-                if (this.$text == value)
-                    return;
-                this.$text = value;
-                this.updateGear(6 /* Text */);
-                if (this.parent && this.parent.$inProgressBuilding)
-                    this.renderNow();
-                else
-                    this.render();
+                this.setText(value);
             },
             enumerable: true,
             configurable: true
         });
+        GTextField.prototype.setText = function (value) {
+            if (value == null)
+                value = "";
+            if (this.$text == value)
+                return;
+            this.$text = value;
+            this.updateGear(6 /* Text */);
+            if (this.parent && this.parent.$inProgressBuilding)
+                this.renderNow();
+            else
+                this.render();
+        };
+        GTextField.prototype.getText = function () {
+            return this.$text;
+        };
         Object.defineProperty(GTextField.prototype, "color", {
             get: function () {
-                return this.$color;
+                return this.getColor();
             },
             set: function (value) {
-                if (this.$color != value) {
-                    this.$color = value;
-                    this.updateGear(4 /* Color */);
-                    this.$style.fill = this.$color;
-                    this.render();
-                }
+                this.setColor(value);
             },
             enumerable: true,
             configurable: true
         });
+        GTextField.prototype.getColor = function () {
+            return this.$color;
+        };
+        GTextField.prototype.setColor = function (value) {
+            if (this.$color != value) {
+                this.$color = value;
+                this.updateGear(4 /* Color */);
+                this.$style.fill = this.$color;
+                this.render();
+            }
+        };
         Object.defineProperty(GTextField.prototype, "titleColor", {
             get: function () {
                 return this.color;
@@ -7762,6 +7766,7 @@ var fgui;
             _this.opaque = false;
             _this.$popupStack = [];
             _this.$justClosedPopups = [];
+            _this.$uid = GRoot.uniqueID++;
             return _this;
         }
         Object.defineProperty(GRoot, "inst", {
@@ -7811,6 +7816,13 @@ var fgui;
                 this.$modalLayer.addRelation(this, 24 /* Size */);
             }
         };
+        Object.defineProperty(GRoot.prototype, "uniqueID", {
+            get: function () {
+                return this.$uid;
+            },
+            enumerable: true,
+            configurable: true
+        });
         Object.defineProperty(GRoot.prototype, "stageWidth", {
             get: function () {
                 return this.$uiStage.stageWidth;
@@ -8165,6 +8177,7 @@ var fgui;
         GRoot.prototype.$winResize = function (stage) {
             this.setSize(stage.stageWidth, stage.stageHeight);
         };
+        GRoot.uniqueID = 0;
         GRoot.$retStatus = new GRootStatus();
         return GRoot;
     }(fgui.GComponent));
@@ -8487,59 +8500,193 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    //TODO: impl
+    ;
     var GTextInput = (function (_super) {
         __extends(GTextInput, _super);
         function GTextInput() {
-            return _super.call(this) || this;
+            var _this = _super.call(this) || this;
+            _this.$util = null;
+            /**@internal */
+            _this.$isTyping = false;
+            _this.focusable = true;
+            _this.editable = true; //init
+            _this.type = "text" /* TEXT */;
+            _this.on("removed", _this.removed, _this);
+            _this.$util.initialize();
+            return _this;
         }
+        GTextInput.prototype.createDisplayObject = function () {
+            _super.prototype.createDisplayObject.call(this);
+            this.$displayObject.hitArea = new PIXI.Rectangle();
+        };
+        GTextInput.prototype.handleSizeChanged = function () {
+            _super.prototype.handleSizeChanged.call(this);
+            var rect = this.$displayObject.hitArea;
+            rect.x = rect.y = 0;
+            rect.width = this.width;
+            rect.height = this.height;
+        };
+        GTextInput.prototype.removed = function (disp) {
+            if (this.$util)
+                this.$util.destroy();
+        };
+        GTextInput.prototype.requestFocus = function () {
+            this.root.focus = this;
+            this.$util.$onFocus();
+        };
         Object.defineProperty(GTextInput.prototype, "editable", {
             get: function () {
-                return false;
+                return this.$editable;
             },
             set: function (v) {
+                if (v != this.$editable) {
+                    this.$editable = v;
+                    if (this.$editable) {
+                        if (!this.$util)
+                            this.$util = new fgui.utils.InputDelegate(this);
+                        this.$util.initialize();
+                    }
+                    else {
+                        if (this.$util)
+                            this.$util.destroy();
+                    }
+                    this.touchable = this.$editable;
+                }
             },
             enumerable: true,
             configurable: true
         });
+        GTextInput.prototype.changeToPassText = function (text) {
+            var passText = "";
+            for (var i = 0, num = text.length; i < num; i++) {
+                switch (text.charAt(i)) {
+                    case '\n':
+                        passText += "\n";
+                        break;
+                    case '\r':
+                        break;
+                    default:
+                        passText += '*';
+                }
+            }
+            return passText;
+        };
+        GTextInput.prototype.getText = function () {
+            return this.$util.text;
+        };
+        GTextInput.prototype.setText = function (value) {
+            if (value == null)
+                value = "";
+            if (this.$text == value)
+                return;
+            this.$util.text = value;
+            _super.prototype.setText.call(this, value);
+        };
+        GTextInput.prototype.setColor = function (value) {
+            _super.prototype.setColor.call(this, value);
+            this.$util.setColor(value);
+        };
         Object.defineProperty(GTextInput.prototype, "promptText", {
             get: function () {
-                return "";
+                return this.$util.$getProperty("placeholder");
             },
             set: function (v) {
+                if (v == null)
+                    v = "";
+                this.$util.$setProperty("placeholder", v);
             },
             enumerable: true,
             configurable: true
         });
         Object.defineProperty(GTextInput.prototype, "maxLength", {
             get: function () {
-                return 0;
+                return parseInt(this.$util.$getProperty("maxlength")) || 0;
             },
             set: function (v) {
+                this.$util.$setProperty("maxlength", String(v));
             },
             enumerable: true,
             configurable: true
         });
         Object.defineProperty(GTextInput.prototype, "restrict", {
             get: function () {
-                return "";
+                return this.$util.$restrict;
             },
             set: function (v) {
+                this.$util.$restrict = v;
             },
             enumerable: true,
             configurable: true
         });
         Object.defineProperty(GTextInput.prototype, "password", {
             get: function () {
-                return false;
+                return this.type == "password" /* PASSWORD */;
             },
             set: function (v) {
+                this.type = "password" /* PASSWORD */;
             },
             enumerable: true,
             configurable: true
         });
+        Object.defineProperty(GTextInput.prototype, "type", {
+            get: function () {
+                return this.$util.type;
+            },
+            set: function (t) {
+                this.$util.type = t;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /*protected handleSizeChanged():void {
+            super.handleSizeChanged();
+            this.$util.resize(this.width, this.height);
+        }*/
+        GTextInput.prototype.dispose = function () {
+            _super.prototype.dispose.call(this);
+            this.off("removed", this.removed, this);
+            this.$util.destroy();
+            this.$util = null;
+        };
+        GTextInput.prototype.renderNow = function (updateBounds) {
+            if (updateBounds === void 0) { updateBounds = true; }
+            this.$util.$updateProperties();
+            if (this.$isTyping)
+                this.decorateInputbox();
+            var origText = this.$text;
+            if (this.type == "password" /* PASSWORD */)
+                this.$text = this.changeToPassText(this.$text);
+            _super.prototype.renderNow.call(this, updateBounds);
+            this.$text = origText;
+        };
+        GTextInput.prototype.decorateInputbox = function () {
+            //draw underlines?
+        };
+        GTextInput.prototype.setupBeforeAdd = function (xml) {
+            _super.prototype.setupBeforeAdd.call(this, xml);
+            //this.promptText = xml.attributes.prompt;  //this will be available once UBB has implemented.
+            var str = xml.attributes.maxLength;
+            if (str != null)
+                this.maxLength = parseInt(str);
+            str = xml.attributes.restrict;
+            if (str != null)
+                this.restrict = str;
+            str = xml.attributes.password;
+            if (str == "true")
+                this.password = true;
+            else {
+                str = xml.attributes.keyboardType;
+                if (str == "4")
+                    this.type = "number" /* NUMBER */;
+                else if (str == "3")
+                    this.type = "url" /* URL */;
+                //else if(str == "2")
+                //    this.type = InputType.EMAIL;
+            }
+            //this.layoutAlign();
+        };
         return GTextInput;
-    }(fgui.GComponent));
+    }(fgui.GTextField));
     fgui.GTextInput = GTextInput;
 })(fgui || (fgui = {}));
 var fgui;
@@ -8625,6 +8772,8 @@ var fgui;
                             args.unshift(item.param);
                         item.callback.apply(item.thisObj, args);
                     }
+                    if (item.end)
+                        item.callback = item.thisObj = item.param = null;
                 }
             }
         };
@@ -12352,6 +12501,111 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
+    /**fill mode for webgl only */
+    var FillSprite = (function (_super) {
+        __extends(FillSprite, _super);
+        function FillSprite(texture) {
+            var _this = _super.call(this, texture) || this;
+            _this._fillDir = 0 /* CW */; //for deg type only
+            _this._flip = 0;
+            return _this;
+        }
+        Object.defineProperty(FillSprite.prototype, "flip", {
+            get: function () {
+                return this._flip;
+            },
+            set: function (v) {
+                if (v != this._flip) {
+                    this._flip = v;
+                    //this.requiresUpdate = true;
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(FillSprite.prototype, "fillAmount", {
+            get: function () {
+                return typeof this._fillAmount == "number" ? this._fillAmount : 100;
+            },
+            set: function (n) {
+                if (n != this._fillAmount) {
+                    this._fillAmount = n;
+                    //this.requiresUpdate = true;
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(FillSprite.prototype, "fillBegin", {
+            get: function () {
+                return this._fillBegin;
+            },
+            set: function (n) {
+                if (n != this._fillBegin) {
+                    this._fillBegin = n;
+                    //this.requiresUpdate = true;
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(FillSprite.prototype, "fillMode", {
+            get: function () {
+                return this._fillMode;
+            },
+            set: function (n) {
+                if (n != this._fillMode) {
+                    this._fillMode = n;
+                    this.checkAndFixFillBegin();
+                    //this.requiresUpdate = true;
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(FillSprite.prototype, "fillDirection", {
+            get: function () {
+                return this._fillDir;
+            },
+            set: function (n) {
+                if (n != this._fillDir) {
+                    this._fillDir = n;
+                    this.checkAndFixFillBegin();
+                    //this.requiresUpdate = true;
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        FillSprite.prototype.checkAndFixFillBegin = function () {
+            switch (this._fillMode) {
+                case 1 /* HORZ */:
+                    if (this._fillBegin != 0 /* L */ && this._fillBegin != 1 /* R */)
+                        this._fillBegin = 0 /* L */;
+                    break;
+                case 2 /* VERT */:
+                    if (this._fillBegin != 2 /* T */ && this._fillBegin != 3 /* B */)
+                        this._fillBegin = 2 /* T */;
+                    break;
+                case 3 /* DEG90 */:
+                    if (this._fillBegin != 4 /* LT */ && this._fillBegin != 6 /* LB */
+                        && this._fillBegin != 5 /* RT */ && this._fillBegin != 7 /* RB */)
+                        this._fillBegin = 4 /* LT */;
+                    break;
+                case 4 /* DEG180 */:
+                case 5 /* DEG360 */:
+                    if (this._fillBegin != 0 /* L */ && this._fillBegin != 1 /* R */
+                        && this._fillBegin != 2 /* T */ && this._fillBegin != 3 /* B */)
+                        this._fillBegin = 2 /* T */;
+                    break;
+            }
+        };
+        return FillSprite;
+    }(PIXI.Sprite));
+    fgui.FillSprite = FillSprite;
+})(fgui || (fgui = {}));
+var fgui;
+(function (fgui) {
     var Frame = (function () {
         function Frame() {
             this.addDelay = 0;
@@ -12359,6 +12613,458 @@ var fgui;
         return Frame;
     }());
     fgui.Frame = Frame;
+})(fgui || (fgui = {}));
+var fgui;
+(function (fgui) {
+    var HTMLInput = (function () {
+        function HTMLInput() {
+            /**@internal */
+            this.$requestToShow = false;
+            /**@internal */
+            this.$scaleX = 1;
+            /**@internal */
+            this.$scaleY = 1;
+        }
+        Object.defineProperty(HTMLInput, "inst", {
+            get: function () {
+                if (!HTMLInput.$instance)
+                    HTMLInput.$instance = new HTMLInput();
+                return HTMLInput.$instance;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        HTMLInput.prototype.initialize = function (container, view) {
+            this.$canvas = view;
+            var div;
+            if (!this.$delegateDiv) {
+                div = document.createElement("div");
+                this.$delegateDiv = div;
+                div.id = "__delegateDiv";
+                container.appendChild(div);
+                this.initDomPos(div);
+                this.$wrapper = document.createElement("div");
+                this.initDomPos(this.$wrapper);
+                this.$wrapper.style.width = "0px";
+                this.$wrapper.style.height = "0px";
+                this.$wrapper.style.left = "0px";
+                this.$wrapper.style.top = "-100px";
+                this.setTransform(this.$wrapper, "0% 0% 0px");
+                div.appendChild(this.$wrapper);
+                fgui.GRoot.inst.on(fgui.InteractiveEvents.Click, this.canvasClickHandler, this);
+                /*this.$canvas.addEventListener("click", (e) => {
+                    this.canvasClickHandler(e);
+                });*/
+                this.initInputElement(true); //input
+                this.initInputElement(false); //textarea
+            }
+        };
+        HTMLInput.prototype.isInputOn = function () {
+            return this.$input != null;
+        };
+        HTMLInput.prototype.canvasClickHandler = function (e) {
+            if (this.$requestToShow) {
+                this.$requestToShow = false;
+                this.$input.onClickHandler(e);
+                this.show();
+            }
+            else {
+                if (this.$curEle) {
+                    this.clearInputElement();
+                    this.$curEle.blur();
+                    this.$curEle = null;
+                }
+            }
+        };
+        HTMLInput.prototype.isInputShown = function () {
+            return this.$input != null;
+        };
+        HTMLInput.prototype.isCurrentInput = function (input) {
+            return this.$input == input;
+        };
+        HTMLInput.prototype.initDomPos = function (dom) {
+            dom.style.position = "absolute";
+            dom.style.left = "0px";
+            dom.style.top = "0px";
+            dom.style.border = "none";
+            dom.style.padding = "0";
+        };
+        HTMLInput.prototype.setTransform = function (el, origin, transform) {
+            var style = el.style;
+            style.transformOrigin = style.webkitTransformOrigin = style.msTransformOrigin = style.mozTransformOrigin = style.oTransformOrigin = origin;
+            if (transform && transform.length > 0)
+                style.transform = style.webkitTransform = style.msTransform = style.mozTransform = style.oTransform = transform;
+        };
+        /**@internal */
+        HTMLInput.prototype.$updateSize = function (sx, sy) {
+            if (!this.$canvas)
+                return;
+            /*let stageW = this.$canvas.width;
+            let stageH = this.$canvas.height;
+            let screenW = parseInt(this.$canvas.style.width.split("px")[0]);
+            let screenH = parseInt(this.$canvas.style.height.split("px")[0]);
+
+            this.$scaleX = screenW / stageW;
+            this.$scaleY = screenH / stageH;*/
+            this.$scaleX = sx;
+            this.$scaleY = sy;
+            this.$delegateDiv.style.left = this.$canvas.style.left;
+            this.$delegateDiv.style.top = this.$canvas.style.top;
+            var cvsStyle = this.$canvas.style;
+            this.setTransform(this.$delegateDiv, "0% 0% 0px", cvsStyle.transform || cvsStyle.webkitTransform || cvsStyle.msTransform || cvsStyle.mozTransform || cvsStyle.oTransform);
+        };
+        HTMLInput.prototype.initInputElement = function (multiline) {
+            var _this = this;
+            var inputElement;
+            if (multiline) {
+                inputElement = document.createElement("textarea");
+                inputElement.style.resize = "none";
+                this.$multiLine = inputElement;
+                inputElement.id = "stageTextAreaEle";
+            }
+            else {
+                inputElement = document.createElement("input");
+                this.$singleLine = inputElement;
+                inputElement.type = "text";
+                inputElement.id = "stageInputEle";
+            }
+            this.$wrapper.appendChild(inputElement);
+            inputElement.setAttribute("tabindex", "-1");
+            inputElement.style.width = "1px";
+            inputElement.style.height = "12px";
+            this.initDomPos(inputElement);
+            var style = inputElement.style;
+            style.outline = "thin";
+            style.background = "none";
+            style.overflow = "hidden";
+            style.wordBreak = "break-all";
+            style.opacity = 0;
+            inputElement.oninput = function (e) {
+                if (_this.$input)
+                    _this.$input.onInputHandler();
+            };
+        };
+        HTMLInput.prototype.show = function () {
+            var _this = this;
+            fgui.GTimer.inst.callLater(function () {
+                _this.$curEle.style.opacity = "1";
+            }, this);
+        };
+        HTMLInput.prototype.disconnect = function (ele) {
+            if (this.$input == null || this.$input == ele) {
+                this.clearInputElement();
+                if (this.$curEle)
+                    this.$curEle.blur();
+            }
+        };
+        HTMLInput.prototype.clearAttributes = function (obj) {
+            if (this.$curEle) {
+                for (var key in obj) {
+                    this.$curEle.removeAttribute(key);
+                }
+            }
+        };
+        HTMLInput.prototype.clearInputElement = function () {
+            if (this.$curEle) {
+                this.$curEle.value = "";
+                this.$curEle.onblur = null;
+                var style = this.$curEle.style;
+                style.width = "1px";
+                style.height = "12px";
+                style.left = "0px";
+                style.top = "0px";
+                style.opacity = "0";
+                var el2 = void 0;
+                if (this.$singleLine == this.$curEle)
+                    el2 = this.$multiLine;
+                else
+                    el2 = this.$singleLine;
+                el2.style.display = "block";
+                this.$wrapper.style.left = "0px";
+                this.$wrapper.style.top = "-100px";
+                this.$wrapper.style.height = "0px";
+                this.$wrapper.style.width = "0px";
+            }
+            if (this.$input) {
+                this.$input.onDisconnect();
+                this.$input = null;
+                HTMLInput.isTyping = false;
+            }
+        };
+        HTMLInput.prototype.requestInput = function (ele) {
+            this.clearInputElement();
+            this.$input = ele;
+            HTMLInput.isTyping = true;
+            var el2;
+            if (this.$input.textField.multipleLine) {
+                this.$curEle = this.$multiLine;
+                el2 = this.$singleLine;
+            }
+            else {
+                this.$curEle = this.$singleLine;
+                el2 = this.$multiLine;
+            }
+            el2.style.display = "none";
+            return this.$curEle;
+        };
+        HTMLInput.isTyping = false;
+        return HTMLInput;
+    }());
+    fgui.HTMLInput = HTMLInput;
+})(fgui || (fgui = {}));
+var fgui;
+(function (fgui) {
+    var InputElement = (function (_super) {
+        __extends(InputElement, _super);
+        function InputElement(tf) {
+            var _this = _super.call(this) || this;
+            _this.$requestToShow = false;
+            _this.$requestToHide = false;
+            _this.inputElement = null;
+            _this.inputDiv = null;
+            _this.$scaleX = 0;
+            _this.$scaleY = 0;
+            _this.textValue = "";
+            _this.colorValue = 0xffffff;
+            _this.$attrsCache = {};
+            _this.$textfield = tf;
+            return _this;
+        }
+        /**@internal */
+        InputElement.prototype.$addToStage = function () {
+            this.htmlInput = fgui.HTMLInput.inst; //take multiple canvas on webpage into account?
+        };
+        InputElement.prototype.initElement = function () {
+            var point = this.$textfield.localToGlobal(0, 0);
+            var x = point.x;
+            var y = point.y;
+            var scaleX = this.htmlInput.$scaleX;
+            var scaleY = this.htmlInput.$scaleY;
+            this.inputDiv.style.left = x * scaleX + "px";
+            this.inputDiv.style.top = y * scaleY + "px";
+            if (this.$textfield.multipleLine && this.$textfield.height > this.$textfield.fontSize) {
+                this.inputDiv.style.top = (y * scaleY) + "px";
+                this.inputElement.style.top = (-this.$textfield.leading * .5 * scaleY) + "px";
+            }
+            else {
+                this.inputDiv.style.top = y * scaleY + "px";
+                this.inputElement.style.top = "0px";
+            }
+            var node = this.$textfield;
+            var cX = 1;
+            var cY = 1;
+            var rotation = 0;
+            while (node.parent) {
+                cX *= node.scaleX;
+                cY *= node.scaleY;
+                rotation += node.rotation;
+                node = node.parent;
+            }
+            var style = this.inputDiv.style;
+            style.transform = style.webkitTransform = style.msTransform = style.mozTransform = style.oTransform = "rotate(" + rotation + "deg)";
+            this.$scaleX = scaleX * cX;
+            this.$scaleY = scaleY * cY;
+        };
+        Object.defineProperty(InputElement.prototype, "textField", {
+            get: function () {
+                return this.$textfield;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**@internal */
+        InputElement.prototype.$show = function () {
+            if (!this.htmlInput.isCurrentInput(this)) {
+                this.inputElement = this.htmlInput.requestInput(this);
+                if (!this.$textfield.multipleLine)
+                    this.inputElement.type = this.$textfield.type;
+                for (var key in this.$attrsCache)
+                    this.inputElement.setAttribute(key, this.$attrsCache[key]);
+                this.inputDiv = this.htmlInput.$wrapper;
+            }
+            else
+                this.inputElement.onblur = null;
+            this.htmlInput.$requestToShow = true;
+            this.$requestToShow = true;
+            this.initElement();
+        };
+        InputElement.prototype.onBlurHandler = function () {
+            this.htmlInput.clearInputElement();
+            this.htmlInput.clearAttributes(this.$attrsCache);
+            window.scrollTo(0, 0);
+        };
+        /**@internal */
+        InputElement.prototype.$hide = function () {
+            this.$requestToHide = true;
+            /*if (this.htmlInput && PIXI.utils.isMobile && iOS) {  //if os is ios need to clearInput once
+                this.htmlInput.disconnect(this);
+            }*/
+        };
+        Object.defineProperty(InputElement.prototype, "text", {
+            get: function () {
+                if (!this.textValue)
+                    this.textValue = "";
+                return this.textValue;
+            },
+            set: function (value) {
+                this.textValue = value;
+                if (this.inputElement)
+                    this.inputElement.value = this.textValue;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        InputElement.prototype.setColor = function (value) {
+            this.colorValue = value;
+            if (this.inputElement)
+                this.setElementStyle("color", fgui.utils.StringUtil.convertToHtmlColor(this.colorValue));
+        };
+        /**@internal */
+        InputElement.prototype.$onBlur = function () {
+            //this.emit("updateText");
+        };
+        InputElement.prototype.onInputHandler = function () {
+            var _this = this;
+            window.setTimeout(function () {
+                if (_this.inputElement && _this.inputElement.selectionStart == _this.inputElement.selectionEnd) {
+                    _this.textValue = _this.inputElement.value;
+                    _this.emit("updateText");
+                }
+            }, 0);
+        };
+        InputElement.prototype.setAreaHeight = function () {
+            var tf = this.$textfield;
+            if (tf.multipleLine) {
+                var textheight = tf.textHeight;
+                if (tf.height <= tf.fontSize) {
+                    this.setElementStyle("height", tf.fontSize * this.$scaleY + "px");
+                    this.setElementStyle("padding", "0px");
+                    this.setElementStyle("lineHeight", tf.fontSize * this.$scaleY + "px");
+                }
+                else if (tf.height < textheight) {
+                    this.setElementStyle("height", (tf.height) * this.$scaleY + "px");
+                    this.setElementStyle("padding", "0px");
+                    this.setElementStyle("lineHeight", (tf.fontSize + tf.leading) * this.$scaleY + "px");
+                }
+                else {
+                    this.setElementStyle("height", (textheight + tf.leading) * this.$scaleY + "px");
+                    var rap = (tf.height - textheight) * this.$scaleY;
+                    var valign = this.getVAlignFactor(tf);
+                    var top_2 = rap * valign;
+                    var bottom = rap - top_2;
+                    this.setElementStyle("padding", top_2 + "px 0px " + bottom + "px 0px");
+                    this.setElementStyle("lineHeight", (tf.fontSize + tf.leading) * this.$scaleY + "px");
+                }
+            }
+        };
+        InputElement.prototype.getVAlignFactor = function (textfield) {
+            var vao = 0;
+            switch (textfield.verticalAlign) {
+                case 0 /* Top */:
+                    break;
+                case 1 /* Middle */:
+                    vao = .5;
+                    break;
+                case 2 /* Bottom */:
+                    vao = 1;
+                    break;
+            }
+            return vao;
+        };
+        InputElement.prototype.onClickHandler = function (e) {
+            if (this.$requestToShow) {
+                //e.stopImmediatePropagation();
+                this.$requestToShow = false;
+                this.inputElement.value = this.text;
+                if (this.inputElement.onblur == null)
+                    this.inputElement.onblur = fgui.utils.Binder.create(this.onBlurHandler, this);
+                this.resetInput();
+                if (this.$textfield.maxLength > 0)
+                    this.inputElement.setAttribute("maxlength", String(this.$textfield.maxLength));
+                else
+                    this.inputElement.removeAttribute("maxlength");
+                this.inputElement.selectionStart = this.inputElement.value.length;
+                this.inputElement.selectionEnd = this.inputElement.value.length;
+                this.inputElement.focus();
+                this.emit("__focusChanged" /* CHANGED */, "focus", this.inputElement);
+            }
+        };
+        InputElement.prototype.onDisconnect = function () {
+            this.inputElement = null;
+            this.emit("__focusChanged" /* CHANGED */, "blur", this.inputElement);
+        };
+        InputElement.prototype.setElementStyle = function (style, value) {
+            if (value == null)
+                return;
+            if (this.inputElement) {
+                var ss = this.inputElement.style;
+                ss[style] = value;
+            }
+        };
+        InputElement.prototype.setAttribute = function (name, value) {
+            if (name == null || value == null)
+                return;
+            this.$attrsCache[name] = value;
+        };
+        InputElement.prototype.getAttribute = function (name) {
+            return this.$attrsCache[name];
+        };
+        /**@internal */
+        InputElement.prototype.$removeFromStage = function () {
+            if (this.inputElement)
+                this.htmlInput.disconnect(this);
+        };
+        InputElement.prototype.resetInput = function () {
+            if (this.inputElement) {
+                var textfield = this.$textfield;
+                this.setElementStyle("fontFamily", textfield.font);
+                this.setElementStyle("fontStyle", textfield.italic ? "italic" : "normal");
+                this.setElementStyle("fontWeight", textfield.bold ? "bold" : "normal");
+                this.setElementStyle("textAlign", textfield.align);
+                this.setElementStyle("fontSize", textfield.fontSize * this.$scaleY + "px");
+                this.setElementStyle("color", fgui.utils.StringUtil.convertToHtmlColor(textfield.color));
+                this.setElementStyle("width", textfield.width * this.$scaleX + "px"); //take 'maxWidth' into account
+                var va = "middle", vao = 0;
+                switch (textfield.verticalAlign) {
+                    case 0 /* Top */:
+                        va = "top";
+                        break;
+                    case 1 /* Middle */:
+                        va = "middle";
+                        vao = .5;
+                        break;
+                    case 2 /* Bottom */:
+                        va = "bottom";
+                        vao = 1;
+                        break;
+                }
+                this.setElementStyle("verticalAlign", va);
+                if (textfield.multipleLine)
+                    this.setAreaHeight();
+                else {
+                    this.setElementStyle("lineHeight", textfield.fontSize * this.$scaleY + "px");
+                    if (textfield.height < textfield.fontSize) {
+                        this.setElementStyle("height", textfield.fontSize * this.$scaleY + "px");
+                        this.setElementStyle("padding", "0px 0px " + (textfield.fontSize * .5 * this.$scaleX) + "px 0px");
+                    }
+                    else {
+                        this.setElementStyle("height", textfield.fontSize * this.$scaleY + "px");
+                        var rap = (textfield.height - textfield.fontSize) * this.$scaleY;
+                        var top_3 = rap * vao;
+                        var bottom = rap - top_3, fsy = textfield.fontSize * .5 * this.$scaleY;
+                        if (bottom < fsy)
+                            bottom = fsy;
+                        this.setElementStyle("padding", top_3 + "px 0px " + bottom + "px 0px");
+                    }
+                }
+                this.inputDiv.style.clip = "rect(0px " + (textfield.width * this.$scaleX) + "px " + (textfield.height * this.$scaleY) + "px 0px)";
+                this.inputDiv.style.height = textfield.height * this.$scaleY + "px";
+                this.inputDiv.style.width = textfield.width * this.$scaleX + "px"; //take 'maxWidth' into account
+            }
+        };
+        return InputElement;
+    }(PIXI.utils.EventEmitter));
+    fgui.InputElement = InputElement;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
@@ -12907,6 +13613,18 @@ var fgui;
             if (!opt.designWidth || !opt.designHeight)
                 throw new Error("Invalid designWidth / designHeight in the parameter 'stageOptions'.");
             _this.$options = opt;
+            var container = _this.$appContext.view.parentElement;
+            if (container.tagName != "DIV") {
+                container = document.createElement("DIV");
+                _this.$appContext.view.parentElement.appendChild(container);
+            }
+            var style = container.style;
+            style.position = "relative";
+            style.left = style.top = "0px";
+            style.width = style.height = "100%";
+            style.overflow = "hidden";
+            _this.$appContext.view.style.position = "absolute";
+            fgui.HTMLInput.inst.initialize(container, _this.$appContext.view);
             _this.$updateScreenSize();
             return _this;
         }
@@ -13028,9 +13746,11 @@ var fgui;
         };
         /**@internal */
         UIStage.prototype.$updateScreenSize = function () {
+            if (fgui.HTMLInput.isTyping)
+                return;
             var canvas = this.$appContext.view;
             var canvasStyle = canvas.style;
-            var winSize = { width: window.innerWidth || document.body.clientWidth, height: window.innerHeight || document.body.clientHeight };
+            var winSize = canvas.parentElement.getBoundingClientRect(); // { width: window.innerWidth || document.body.clientWidth, height: window.innerHeight || document.body.clientHeight };
             var shouldRotate = false;
             var orientation = this.$options.orientation;
             if (orientation != "auto" /* AUTO */) {
@@ -13098,12 +13818,12 @@ var fgui;
             this.$height = stageHeight;
             this.$scaleX = stageWidth / displayWidth;
             this.$scaleY = stageHeight / displayHeight;
-            //this.input.$updateSize();
             var im = this.$appContext.renderer.plugins.interaction;
             im.stageRotation = rotDeg;
             im.stageScaleX = this.$scaleX;
             im.stageScaleY = this.$scaleY;
             this.$appContext.renderer.resize(stageWidth, stageHeight);
+            fgui.HTMLInput.inst.$updateSize(displayWidth / stageWidth, displayHeight / stageHeight);
             this.emit("__sizeChanged" /* SIZE_CHANGED */, this);
         };
         UIStage.prototype.formatData = function (value) {
@@ -13544,9 +14264,9 @@ var fgui;
             if (!buf)
                 buf = fgui.utils.AssetLoader.resourcesPool[this.$resKey + "_fui"];
             if (!buf)
-                throw new Error("Resource '" + this.$resKey + "' not found, please make sure that this resource has been added into the resource library by calling PIXI.loader.add method.");
+                throw new Error("Resource '" + this.$resKey + "' not found, please make sure that you use \"new fgui.utils.AssetLoader\" to load resources instead of \" PIXI.loaders.Loader\".");
             if (!buf.data || !(buf.data instanceof ArrayBuffer))
-                throw new Error("Resource '" + this.$resKey + "' is not a proper binary resource, please load it as binary format by calling loader.add(name, url, { loadType:PIXI.loaders.Resource.LOAD_TYPE.XHR, xhrType: PIXI.loaders.Resource.XHR_RESPONSE_TYPE.BUFFER })");
+                throw new Error("Resource '" + this.$resKey + "' is not a proper binary resource, please load it as binary format by calling yourLoader.add(name, url, { loadType:PIXI.loaders.Resource.LOAD_TYPE.XHR, xhrType: PIXI.loaders.Resource.XHR_RESPONSE_TYPE.BUFFER })");
             this.decompressPackage(buf.data);
             var str = this.getResDescriptor("sprites.bytes");
             str && str.split(UIPackage.sep1).forEach(function (str, index) {
@@ -14634,6 +15354,174 @@ var fgui;
             return DragIndicator;
         }());
         utils.DragIndicator = DragIndicator;
+    })(utils = fgui.utils || (fgui.utils = {}));
+})(fgui || (fgui = {}));
+var fgui;
+(function (fgui) {
+    var utils;
+    (function (utils) {
+        var InputDelegate = (function () {
+            function InputDelegate(tf) {
+                this.$inited = false;
+                this.$restrictString = null;
+                this.$restrictRegex = null;
+                this.$focused = false;
+                this.$textField = tf;
+                this.$input = new fgui.InputElement(tf);
+            }
+            InputDelegate.prototype.initialize = function () {
+                if (this.$inited)
+                    return;
+                //this.$textField.touchable = true;
+                this.$input.$addToStage();
+                this.$input.on("updateText", this.updateText, this);
+                this.$input.on("__focusChanged" /* CHANGED */, this.focusHandler, this);
+                this.$textField.on(fgui.InteractiveEvents.Down, this.textFieldDownHandler, this);
+                this.$inited = true;
+            };
+            InputDelegate.prototype.textFieldDownHandler = function () {
+                this.$onFocus();
+            };
+            InputDelegate.prototype.destroy = function () {
+                if (!this.$inited)
+                    return;
+                //this.$textField.touchable = false;
+                this.$input.$removeFromStage();
+                this.$textField.off(fgui.InteractiveEvents.Down, this.textFieldDownHandler, this);
+                fgui.GRoot.inst.off(fgui.InteractiveEvents.Down, this.onStageDown, this);
+                this.$input.off("updateText", this.updateText, this);
+                this.$input.off("__focusChanged" /* CHANGED */, this.focusHandler, this);
+                this.$inited = false;
+            };
+            Object.defineProperty(InputDelegate.prototype, "text", {
+                get: function () {
+                    return this.$input.text;
+                },
+                set: function (v) {
+                    this.$input.text = v;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            InputDelegate.prototype.setColor = function (v) {
+                return this.$input.setColor(v);
+            };
+            InputDelegate.prototype.updateText = function () {
+                var textValue = this.$input.text;
+                var isChanged = false;
+                if (this.$restrictRegex != null) {
+                    var result = textValue.match(this.$restrictRegex);
+                    if (result)
+                        textValue = result.join("");
+                    else
+                        textValue = "";
+                    isChanged = true;
+                }
+                if (isChanged && this.$input.text != textValue)
+                    this.$input.text = textValue;
+                this.$textField.text = this.$input.text;
+                this.$textField.emit("__textChange" /* Change */, this.$textField);
+            };
+            InputDelegate.prototype.onStageDown = function (e) {
+                var target = fgui.GObject.castFromNativeObject(e.currentTarget);
+                if (target != this.$textField)
+                    this.$input.$hide();
+            };
+            InputDelegate.prototype.focusHandler = function (type) {
+                if (type == "focus") {
+                    if (!this.$focused) {
+                        this.$focused = true;
+                        this.$textField.$isTyping = true;
+                        this.$textField.alpha = 0;
+                        this.$textField.emit("__focusChanged" /* CHANGED */, "focus", this.$textField);
+                    }
+                }
+                else if (type == "blur") {
+                    if (this.$focused) {
+                        this.$focused = false;
+                        fgui.GRoot.inst.off(fgui.InteractiveEvents.Down, this.onStageDown, this);
+                        this.$textField.$isTyping = false;
+                        this.$textField.alpha = 1;
+                        this.$input.$onBlur();
+                        this.$textField.emit("__focusChanged" /* CHANGED */, "blur", this.$textField);
+                    }
+                }
+            };
+            Object.defineProperty(InputDelegate.prototype, "isFocused", {
+                get: function () {
+                    return this.$focused;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            /**@internal */
+            InputDelegate.prototype.$getProperty = function (name) {
+                return this.$inited && this.$input.getAttribute(name) || null;
+            };
+            /**@internal */
+            InputDelegate.prototype.$setProperty = function (name, value) {
+                if (!this.$inited)
+                    return;
+                this.$input.setAttribute(name, value);
+            };
+            Object.defineProperty(InputDelegate.prototype, "$restrict", {
+                get: function () {
+                    return this.$restrictString;
+                },
+                set: function (v) {
+                    this.$restrictString = v;
+                    if (this.$restrictString != null && this.$restrictString.length > 0)
+                        this.$restrictRegex = new RegExp(this.$restrictString);
+                    else
+                        this.$restrictRegex = null;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(InputDelegate.prototype, "type", {
+                get: function () {
+                    return this.$type;
+                },
+                set: function (v) {
+                    if (v != this.$type)
+                        this.$type = v;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            /*public resize(w:number, h:number):void {
+                this.$input.style.width = w + "px";
+                this.$input.style.height = h + "px";
+            }*/
+            InputDelegate.prototype.tryHideInput = function () {
+                if (!this.$textField.visible && this.$input)
+                    this.$input.$removeFromStage();
+            };
+            /**@internal */
+            InputDelegate.prototype.$updateProperties = function () {
+                if (this.isFocused) {
+                    this.$input.resetInput();
+                    this.tryHideInput();
+                    return;
+                }
+                this.$input.text = this.$textField.text;
+                this.$input.resetInput();
+                this.tryHideInput();
+            };
+            /**@internal */
+            InputDelegate.prototype.$onFocus = function () {
+                var _this = this;
+                if (!this.$textField.visible || this.$focused)
+                    return;
+                fgui.GRoot.inst.off(fgui.InteractiveEvents.Down, this.onStageDown, this);
+                fgui.GTimer.inst.callLater(function () {
+                    fgui.GRoot.inst.on(fgui.InteractiveEvents.Down, _this.onStageDown, _this);
+                }, this);
+                this.$input.$show();
+            };
+            return InputDelegate;
+        }());
+        utils.InputDelegate = InputDelegate;
     })(utils = fgui.utils || (fgui.utils = {}));
 })(fgui || (fgui = {}));
 var fgui;

@@ -128,6 +128,28 @@ declare namespace fgui {
         Vertical = 2,
         Both = 3,
     }
+    const enum TextureFillMode {
+        NONE = 0,
+        HORZ = 1,
+        VERT = 2,
+        DEG90 = 3,
+        DEG180 = 4,
+        DEG360 = 5,
+    }
+    const enum TextureFillBegin {
+        L = 0,
+        R = 1,
+        T = 2,
+        B = 3,
+        LT = 4,
+        RT = 5,
+        LB = 6,
+        RB = 7,
+    }
+    const enum TextureFillDirection {
+        CW = 0,
+        CCW = 1,
+    }
     const enum RelationType {
         Left_Left = 0,
         Left_Center = 1,
@@ -935,7 +957,6 @@ declare namespace fgui {
         private $tweenValue;
         private static easeLinear;
         constructor();
-        protected createDisplayObject(): void;
         titleType: ProgressTitleType;
         max: number;
         value: number;
@@ -988,9 +1009,12 @@ declare namespace fgui {
         protected createDisplayObject(): void;
         private switchBitmapMode(val);
         dispose(): void;
-        touchable: boolean;
         text: string;
+        protected setText(value: string): void;
+        protected getText(): string;
         color: number;
+        protected getColor(): number;
+        protected setColor(value: number): void;
         titleColor: number;
         font: string;
         fontSize: number;
@@ -1047,6 +1071,7 @@ declare namespace fgui {
         mouseY: number;
     }
     class GRoot extends GComponent {
+        private static uniqueID;
         private $uiStage;
         private $modalLayer;
         private $popupStack;
@@ -1056,6 +1081,7 @@ declare namespace fgui {
         private $tooltipWin;
         private $defaultTooltipWin;
         private $checkingPopups;
+        private $uid;
         private static $inst;
         private static $retStatus;
         static readonly inst: GRoot;
@@ -1064,6 +1090,7 @@ declare namespace fgui {
         /**The main entry */
         attachTo(app: PIXI.Application, stageOptions?: UIStageOptions): void;
         constructor();
+        readonly uniqueID: number;
         readonly stageWidth: number;
         readonly stageHeight: number;
         readonly contentScaleFactor: number;
@@ -1158,13 +1185,36 @@ declare namespace fgui {
     }
 }
 declare namespace fgui {
-    class GTextInput extends GComponent {
+    const enum InputType {
+        TEXT = "text",
+        PASSWORD = "password",
+        NUMBER = "number",
+        EMAIL = "email",
+        TEL = "tel",
+        URL = "url",
+    }
+    class GTextInput extends GTextField {
+        protected $editable: boolean;
+        protected $util: utils.InputDelegate;
         constructor();
+        protected createDisplayObject(): void;
+        protected handleSizeChanged(): void;
+        private removed(disp);
+        requestFocus(): void;
         editable: boolean;
+        private changeToPassText(text);
+        protected getText(): string;
+        protected setText(value: string): void;
+        protected setColor(value: number): void;
         promptText: string;
         maxLength: number;
         restrict: string;
         password: boolean;
+        type: InputType;
+        dispose(): void;
+        protected renderNow(updateBounds?: boolean): void;
+        private decorateInputbox();
+        setupBeforeAdd(xml: utils.XmlNode): void;
     }
 }
 declare namespace fgui {
@@ -1711,9 +1761,83 @@ declare namespace fgui {
     }
 }
 declare namespace fgui {
+    /**fill mode for webgl only */
+    class FillSprite extends PIXI.Sprite {
+        protected _fillMode: TextureFillMode;
+        protected _fillBegin: TextureFillBegin;
+        protected _fillDir: TextureFillDirection;
+        protected _fillAmount: number;
+        protected _flip: FlipType;
+        constructor(texture?: PIXI.Texture);
+        flip: FlipType;
+        fillAmount: number;
+        fillBegin: TextureFillBegin;
+        fillMode: TextureFillMode;
+        fillDirection: TextureFillDirection;
+        private checkAndFixFillBegin();
+    }
+}
+declare namespace fgui {
     class Frame {
         addDelay: number;
         texture: PIXI.Texture;
+    }
+}
+declare namespace fgui {
+    class HTMLInput {
+        private $input;
+        private $singleLine;
+        private $multiLine;
+        private $curEle;
+        private $delegateDiv;
+        private $canvas;
+        static isTyping: boolean;
+        private constructor();
+        private static $instance;
+        static readonly inst: HTMLInput;
+        initialize(container: HTMLElement, view: HTMLCanvasElement): void;
+        isInputOn(): boolean;
+        private canvasClickHandler(e);
+        isInputShown(): boolean;
+        isCurrentInput(input: InputElement): boolean;
+        private initDomPos(dom);
+        private setTransform(el, origin, transform?);
+        private initInputElement(multiline);
+        show(): void;
+        disconnect(ele: InputElement): void;
+        clearAttributes(obj: any): void;
+        clearInputElement(): void;
+        requestInput(ele: InputElement): HTMLInputElement | HTMLTextAreaElement;
+    }
+}
+declare namespace fgui {
+    class InputElement extends PIXI.utils.EventEmitter {
+        private htmlInput;
+        private $requestToShow;
+        private $requestToHide;
+        private inputElement;
+        private inputDiv;
+        private $scaleX;
+        private $scaleY;
+        private textValue;
+        private colorValue;
+        protected $textfield: GTextInput;
+        constructor(tf: GTextInput);
+        private initElement();
+        readonly textField: GTextField;
+        onBlurHandler(): void;
+        text: string;
+        setColor(value: number): void;
+        onInputHandler(): void;
+        private setAreaHeight();
+        private getVAlignFactor(textfield);
+        onClickHandler(e: Event): void;
+        onDisconnect(): void;
+        private setElementStyle(style, value);
+        private $attrsCache;
+        setAttribute(name: string, value: string): void;
+        getAttribute(name: string): string;
+        resetInput(): void;
     }
 }
 declare namespace fgui {
@@ -2297,6 +2421,30 @@ declare namespace fgui.utils {
         startDrag(source: GObject, icon: string, sourceData: any, touchPointID?: number): void;
         cancel(): void;
         private $dragEnd(evt);
+    }
+}
+declare namespace fgui.utils {
+    class InputDelegate {
+        protected $inited: boolean;
+        protected $textField: GTextInput;
+        protected $input: InputElement;
+        protected $restrictString: string;
+        protected $restrictRegex: RegExp;
+        protected $type: InputType;
+        private $focused;
+        constructor(tf: GTextInput);
+        initialize(): void;
+        private textFieldDownHandler();
+        destroy(): void;
+        text: string;
+        setColor(v: number): void;
+        private updateText();
+        private onStageDown(e);
+        private focusHandler(type);
+        readonly isFocused: boolean;
+        $restrict: string;
+        type: InputType;
+        private tryHideInput();
     }
 }
 declare namespace fgui.utils {
