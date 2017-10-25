@@ -91,6 +91,19 @@ namespace fgui {
 
             this.$options = opt;
 
+            let container = this.$appContext.view.parentElement;
+            if(container.tagName != "DIV") {
+                container = document.createElement("DIV");
+                this.$appContext.view.parentElement.appendChild(container);
+            }
+            let style = container.style;
+            style.position = "relative";
+            style.left = style.top = "0px";
+            style.width = style.height = "100%";
+            style.overflow = "hidden";
+            this.$appContext.view.style.position = "absolute";
+            
+            HTMLInput.inst.initialize(container, this.$appContext.view);
             this.$updateScreenSize();
         }
 
@@ -191,10 +204,12 @@ namespace fgui {
         /**@internal */
         $updateScreenSize(): void {
 
+            if(HTMLInput.isTyping) return;
+
             let canvas = this.$appContext.view;
             let canvasStyle: any = canvas.style;
 
-            let winSize = { width: window.innerWidth || document.body.clientWidth, height: window.innerHeight || document.body.clientHeight };
+            let winSize = canvas.parentElement.getBoundingClientRect(); // { width: window.innerWidth || document.body.clientWidth, height: window.innerHeight || document.body.clientHeight };
 
             let shouldRotate = false;
             let orientation: string = this.$options.orientation;
@@ -269,12 +284,12 @@ namespace fgui {
             this.$scaleX = stageWidth / displayWidth
             this.$scaleY = stageHeight / displayHeight;
             
-            //this.input.$updateSize();
             let im = this.$appContext.renderer.plugins.interaction as PIXI.extras.InteractionManager;
             im.stageRotation = rotDeg;
             im.stageScaleX = this.$scaleX;
             im.stageScaleY = this.$scaleY;
             this.$appContext.renderer.resize(stageWidth, stageHeight);
+            HTMLInput.inst.$updateSize(displayWidth / stageWidth, displayHeight / stageHeight);
             
             this.emit(DisplayObjectEvent.SIZE_CHANGED, this);
         }
