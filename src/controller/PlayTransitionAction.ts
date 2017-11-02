@@ -14,7 +14,10 @@ namespace fgui.controller {
                 if (this.$currentTransition && this.$currentTransition.playing)
                     trans.changeRepeat(this.repeat);
                 else
-                    trans.play(null, this.repeat, this.delay);
+                    trans.play({
+                        times: this.repeat,
+                        delay: this.delay
+                    });
                 this.$currentTransition = trans;
             }
         }
