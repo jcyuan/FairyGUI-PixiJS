@@ -266,7 +266,7 @@ namespace fgui {
         /**overwrite this for load resources by your own way */
         protected loadExternal(): void {
             new PIXI.loaders.Loader()
-                .add("__externalLoaderRes", this.$url)
+                .add("__externalLoaderRes", this.$url, { loadType: PIXI.loaders.Resource.LOAD_TYPE.IMAGE })  //supposed to load an image
                 .load((ld: PIXI.loaders.Loader, res: PIXI.loaders.ResourceDictionary) => {
                     this.$loadResCompleted(ld, res);
                 });
