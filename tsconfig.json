@@ -7,8 +7,7 @@
     "noImplicitThis": true,
     "alwaysStrict": true,
     "noUnusedLocals": true,
-    "watch": true,
-    "sourceRoot": "./src"
+    "watch": true
   },
   "exclude": [
     "node_modules",
