@@ -33,6 +33,8 @@ namespace fgui {
         designHeight: number;
         alignV?: StageAlign,
         alignH?: StageAlign,
+        fallbackWidth?: number,
+        fallbackHeight?: number
         [key: string]: string | number;
     }
 
@@ -44,7 +46,58 @@ namespace fgui {
         public designHeight: number = 600;
         public alignV: StageAlign = StageAlign.MIDDLE;
         public alignH: StageAlign = StageAlign.CENTER;
+        public fallbackWidth: number = 0;
+        public fallbackHeight: number = 0;
         [key: string]: string | number;
+    }
+    
+    type BoundingRect = {
+        x: number,
+        y: number,
+        width: number,
+        height: number
+    };
+
+    interface IBoundingRectCalculator {
+        getRect(view:HTMLCanvasElement, fallbackWidth:number, fallbackHeight:number):BoundingRect;
+    }
+
+    class DefaultBoudingRectCalculator implements IBoundingRectCalculator {
+        public getRect(view:HTMLCanvasElement, fallbackWidth:number, fallbackHeight:number): BoundingRect {
+            let p = view.parentElement;
+            if(!p)
+                //this should be impossible situation unless the user forget to append the view into the DOM.
+                throw new Error("Your view of PIXI are still in memory but not appended to DOM yet? it's necessary that there is a parent element to wrap your view up.");
+            let rect = p.getBoundingClientRect();
+            let ret:BoundingRect = {
+                x: 0,
+                y: 0,
+                width: 0,
+                height: 0
+            }
+            if(!rect || rect.width <= 0 || rect.height <= 0) {
+                console.warn("It seems that you did not set a explicit size for the parent element of your view, now fall back to window size instead.");
+                ret.width = window.innerWidth;
+                ret.height = window.innerHeight;
+                ret.x = 0;
+                ret.y = 0;
+            }
+            else {
+                ret.x = rect.left;
+                ret.y = rect.top;
+                ret.width = rect.width;
+                ret.height = rect.height;
+            }
+
+            //consider the worst situation: window does not have size!!
+            if(ret.width <= 0 || ret.height <= 0) {
+                console.warn("fetch container size to initialize PIXI in all ways have failed, now use default size (fallbackWidth / fallbackHeight) specified in the options instead.");
+                ret.width = fallbackWidth;
+                ret.height = fallbackHeight;
+            }
+
+            return ret;
+        }
     }
 
     export class UIStage extends PIXI.utils.EventEmitter {
@@ -63,6 +116,8 @@ namespace fgui {
 
         public offsetX: number = 0;
         public offsetY: number = 0;
+
+        private $sizeCalcer:DefaultBoudingRectCalculator = new DefaultBoudingRectCalculator();
 
         public constructor(app: PIXI.Application, stageOptions?: UIStageOptions) {
             super();
@@ -209,16 +264,16 @@ namespace fgui {
             let canvas = this.$appContext.view;
             let canvasStyle: any = canvas.style;
 
-            let winSize = canvas.parentElement.getBoundingClientRect(); // { width: window.innerWidth || document.body.clientWidth, height: window.innerHeight || document.body.clientHeight };
-
+            let rect = this.$sizeCalcer.getRect(canvas, this.$options.fallbackWidth, this.$options.fallbackHeight);
+            
             let shouldRotate = false;
             let orientation: string = this.$options.orientation;
             if (orientation != StageOrientation.AUTO) {
-                shouldRotate = orientation != StageOrientation.PORTRAIT && winSize.height > winSize.width
-                    || orientation == StageOrientation.PORTRAIT && winSize.width > winSize.height;
+                shouldRotate = orientation != StageOrientation.PORTRAIT && rect.height > rect.width
+                    || orientation == StageOrientation.PORTRAIT && rect.width > rect.height;
             }
-            let screenWidth = shouldRotate ? winSize.height : winSize.width;
-            let screenHeight = shouldRotate ? winSize.width : winSize.height;
+            let screenWidth = shouldRotate ? rect.height : rect.width;
+            let screenHeight = shouldRotate ? rect.width : rect.height;
 
             let stageSize = this.calculateStageSize(this.$options.scaleMode, screenWidth, screenHeight, this.$options.designWidth, this.$options.designHeight);
             let stageWidth = stageSize.stageWidth;
@@ -240,12 +295,12 @@ namespace fgui {
 
             let offx: number, offy: number;
             if (this.$options.alignH == StageAlign.LEFT) offx = 0;
-            else if (this.$options.alignH == StageAlign.RIGHT) offx = winSize.width - dispWidth;
-            else offx = (winSize.width - dispWidth) * 0.5;
+            else if (this.$options.alignH == StageAlign.RIGHT) offx = rect.width - dispWidth;
+            else offx = (rect.width - dispWidth) * 0.5;
 
             if (this.$options.alignV == StageAlign.TOP) offy = 0;
-            else if (this.$options.alignV == StageAlign.BOTTOM) offy = winSize.height - dispHeight;
-            else offy = (winSize.height - dispHeight) * 0.5;
+            else if (this.$options.alignV == StageAlign.BOTTOM) offy = rect.height - dispHeight;
+            else offy = (rect.height - dispHeight) * 0.5;
 
             let rotDeg = 0;
             if (shouldRotate) {
