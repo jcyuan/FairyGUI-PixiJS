@@ -50,10 +50,7 @@ namespace fgui {
                 div.appendChild(this.$wrapper);
 
                 GRoot.inst.on(fgui.InteractiveEvents.Click, this.canvasClickHandler, this);
-                /*this.$canvas.addEventListener("click", (e) => {
-                    this.canvasClickHandler(e);
-                });*/
-
+                
                 this.initInputElement(true);   //input
                 this.initInputElement(false);  //textarea
             }
