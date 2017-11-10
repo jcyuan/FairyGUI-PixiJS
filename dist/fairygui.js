@@ -6439,7 +6439,7 @@ var fgui;
         GLoader.prototype.loadExternal = function () {
             var _this = this;
             new PIXI.loaders.Loader()
-                .add("__externalLoaderRes", this.$url)
+                .add("__externalLoaderRes", this.$url, { loadType: PIXI.loaders.Resource.LOAD_TYPE.IMAGE }) //supposed to load an image
                 .load(function (ld, res) {
                 _this.$loadResCompleted(ld, res);
             });
@@ -6937,7 +6937,7 @@ var fgui;
             var _this = _super.call(this) || this;
             _this.$leading = 0;
             _this.$verticalAlign = 0 /* Top */;
-            _this.$alignYOffset = 0;
+            _this.$offset = new PIXI.Point();
             _this.$singleLine = true;
             _this.$text = "";
             _this.$textWidth = 0;
@@ -7296,7 +7296,7 @@ var fgui;
             this.switchBitmapMode(false);
             this.applyStyle();
             this.$textField.$updateMinHeight();
-            var wordWrap = (!this.$widthAutoSize && !this.$singleLine && this.autoSize != 3 /* Shrink */);
+            var wordWrap = !this.$widthAutoSize && this.multipleLine;
             this.$textField.width = this.$textField.style.wordWrapWidth = wordWrap ? Math.ceil(this.width) : 10000;
             this.$textField.style.wordWrap = wordWrap;
             this.$textField.style.breakWords = wordWrap;
@@ -7557,6 +7557,22 @@ var fgui;
                 }
             });
         };
+        GTextField.prototype.localToGlobal = function (ax, ay, resultPoint) {
+            if (ax === void 0) { ax = 0; }
+            if (ay === void 0) { ay = 0; }
+            var r = _super.prototype.localToGlobal.call(this, ax, ay, resultPoint);
+            r.x -= this.$offset.x;
+            r.y -= this.$offset.y;
+            return r;
+        };
+        GTextField.prototype.globalToLocal = function (ax, ay, resultPoint) {
+            if (ax === void 0) { ax = 0; }
+            if (ay === void 0) { ay = 0; }
+            var r = _super.prototype.globalToLocal.call(this, ax, ay, resultPoint);
+            r.x -= this.$offset.x;
+            r.y -= this.$offset.y;
+            return r;
+        };
         GTextField.prototype.handleSizeChanged = function () {
             if (this.$updatingSize)
                 return;
@@ -7597,13 +7613,13 @@ var fgui;
                 th *= this.displayObject.scale.y;
             }
             if (this.$verticalAlign == 0 /* Top */ || th == 0)
-                this.$alignYOffset = GTextField.GUTTER_Y;
+                this.$offset.y = GTextField.GUTTER_Y;
             else {
                 var dh = Math.max(0, this.height - th);
                 if (this.$verticalAlign == 1 /* Middle */)
-                    this.$alignYOffset = dh * .5;
+                    this.$offset.y = dh * .5;
                 else if (this.$verticalAlign == 2 /* Bottom */)
-                    this.$alignYOffset = dh;
+                    this.$offset.y = dh;
             }
             var xPos = 0;
             switch (this.$style.align) {
@@ -7614,12 +7630,16 @@ var fgui;
                     xPos = this.width - tw;
                     break;
             }
-            this.displayObject.position.set(Math.floor(this.x + xPos), Math.floor(this.y + this.$alignYOffset));
+            this.$offset.x = xPos;
+            this.updatePosition();
+        };
+        GTextField.prototype.updatePosition = function () {
+            this.displayObject.position.set(Math.floor(this.x + this.$offset.x), Math.floor(this.y + this.$offset.y));
         };
         GTextField.prototype.handleXYChanged = function () {
             _super.prototype.handleXYChanged.call(this);
             if (this.$displayObject)
-                this.$displayObject.y += this.$alignYOffset;
+                this.updatePosition();
         };
         GTextField.prototype.setupBeforeAdd = function (xml) {
             _super.prototype.setupBeforeAdd.call(this, xml);
@@ -8638,10 +8658,6 @@ var fgui;
             enumerable: true,
             configurable: true
         });
-        /*protected handleSizeChanged():void {
-            super.handleSizeChanged();
-            this.$util.resize(this.width, this.height);
-        }*/
         GTextInput.prototype.dispose = function () {
             _super.prototype.dispose.call(this);
             this.off("removed", this.removed, this);
@@ -8680,10 +8696,11 @@ var fgui;
                     this.type = "number" /* NUMBER */;
                 else if (str == "3")
                     this.type = "url" /* URL */;
-                //else if(str == "2")
-                //    this.type = InputType.EMAIL;
+                else if (str == "5")
+                    this.type = "tel" /* TEL */;
+                else if (str == "6")
+                    this.type = "email" /* EMAIL */;
             }
-            //this.layoutAlign();
         };
         return GTextInput;
     }(fgui.GTextField));
@@ -12442,7 +12459,10 @@ var fgui;
                     if (this.$currentTransition && this.$currentTransition.playing)
                         trans.changeRepeat(this.repeat);
                     else
-                        trans.play(null, this.repeat, this.delay);
+                        trans.play({
+                            times: this.repeat,
+                            delay: this.delay
+                        });
                     this.$currentTransition = trans;
                 }
             };
@@ -12501,111 +12521,6 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    /**fill mode for webgl only */
-    var FillSprite = (function (_super) {
-        __extends(FillSprite, _super);
-        function FillSprite(texture) {
-            var _this = _super.call(this, texture) || this;
-            _this._fillDir = 0 /* CW */; //for deg type only
-            _this._flip = 0;
-            return _this;
-        }
-        Object.defineProperty(FillSprite.prototype, "flip", {
-            get: function () {
-                return this._flip;
-            },
-            set: function (v) {
-                if (v != this._flip) {
-                    this._flip = v;
-                    //this.requiresUpdate = true;
-                }
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(FillSprite.prototype, "fillAmount", {
-            get: function () {
-                return typeof this._fillAmount == "number" ? this._fillAmount : 100;
-            },
-            set: function (n) {
-                if (n != this._fillAmount) {
-                    this._fillAmount = n;
-                    //this.requiresUpdate = true;
-                }
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(FillSprite.prototype, "fillBegin", {
-            get: function () {
-                return this._fillBegin;
-            },
-            set: function (n) {
-                if (n != this._fillBegin) {
-                    this._fillBegin = n;
-                    //this.requiresUpdate = true;
-                }
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(FillSprite.prototype, "fillMode", {
-            get: function () {
-                return this._fillMode;
-            },
-            set: function (n) {
-                if (n != this._fillMode) {
-                    this._fillMode = n;
-                    this.checkAndFixFillBegin();
-                    //this.requiresUpdate = true;
-                }
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(FillSprite.prototype, "fillDirection", {
-            get: function () {
-                return this._fillDir;
-            },
-            set: function (n) {
-                if (n != this._fillDir) {
-                    this._fillDir = n;
-                    this.checkAndFixFillBegin();
-                    //this.requiresUpdate = true;
-                }
-            },
-            enumerable: true,
-            configurable: true
-        });
-        FillSprite.prototype.checkAndFixFillBegin = function () {
-            switch (this._fillMode) {
-                case 1 /* HORZ */:
-                    if (this._fillBegin != 0 /* L */ && this._fillBegin != 1 /* R */)
-                        this._fillBegin = 0 /* L */;
-                    break;
-                case 2 /* VERT */:
-                    if (this._fillBegin != 2 /* T */ && this._fillBegin != 3 /* B */)
-                        this._fillBegin = 2 /* T */;
-                    break;
-                case 3 /* DEG90 */:
-                    if (this._fillBegin != 4 /* LT */ && this._fillBegin != 6 /* LB */
-                        && this._fillBegin != 5 /* RT */ && this._fillBegin != 7 /* RB */)
-                        this._fillBegin = 4 /* LT */;
-                    break;
-                case 4 /* DEG180 */:
-                case 5 /* DEG360 */:
-                    if (this._fillBegin != 0 /* L */ && this._fillBegin != 1 /* R */
-                        && this._fillBegin != 2 /* T */ && this._fillBegin != 3 /* B */)
-                        this._fillBegin = 2 /* T */;
-                    break;
-            }
-        };
-        return FillSprite;
-    }(PIXI.Sprite));
-    fgui.FillSprite = FillSprite;
-})(fgui || (fgui = {}));
-var fgui;
-(function (fgui) {
     var Frame = (function () {
         function Frame() {
             this.addDelay = 0;
@@ -12652,9 +12567,6 @@ var fgui;
                 this.setTransform(this.$wrapper, "0% 0% 0px");
                 div.appendChild(this.$wrapper);
                 fgui.GRoot.inst.on(fgui.InteractiveEvents.Click, this.canvasClickHandler, this);
-                /*this.$canvas.addEventListener("click", (e) => {
-                    this.canvasClickHandler(e);
-                });*/
                 this.initInputElement(true); //input
                 this.initInputElement(false); //textarea
             }
@@ -12699,13 +12611,6 @@ var fgui;
         HTMLInput.prototype.$updateSize = function (sx, sy) {
             if (!this.$canvas)
                 return;
-            /*let stageW = this.$canvas.width;
-            let stageH = this.$canvas.height;
-            let screenW = parseInt(this.$canvas.style.width.split("px")[0]);
-            let screenH = parseInt(this.$canvas.style.height.split("px")[0]);
-
-            this.$scaleX = screenW / stageW;
-            this.$scaleY = screenH / stageH;*/
             this.$scaleX = sx;
             this.$scaleY = sy;
             this.$delegateDiv.style.left = this.$canvas.style.left;
@@ -13579,10 +13484,50 @@ var fgui;
             this.designHeight = 600;
             this.alignV = 4 /* MIDDLE */;
             this.alignH = 1 /* CENTER */;
+            this.fallbackWidth = 0;
+            this.fallbackHeight = 0;
         }
         return DefaultUIStageOptions;
     }());
     fgui.DefaultUIStageOptions = DefaultUIStageOptions;
+    var DefaultBoudingRectCalculator = (function () {
+        function DefaultBoudingRectCalculator() {
+        }
+        DefaultBoudingRectCalculator.prototype.getRect = function (view, fallbackWidth, fallbackHeight) {
+            var p = view.parentElement;
+            if (!p)
+                //this should be impossible situation unless the user forget to append the view into the DOM.
+                throw new Error("Your view of PIXI are still in memory but not appended to DOM yet? it's necessary that there is a parent element to wrap your view up.");
+            var rect = p.getBoundingClientRect();
+            var ret = {
+                x: 0,
+                y: 0,
+                width: 0,
+                height: 0
+            };
+            if (!rect || rect.width <= 0 || rect.height <= 0) {
+                console.warn("It seems that you did not set a explicit size for the parent element of your view, now fall back to window size instead.");
+                ret.width = window.innerWidth;
+                ret.height = window.innerHeight;
+                ret.x = 0;
+                ret.y = 0;
+            }
+            else {
+                ret.x = rect.left;
+                ret.y = rect.top;
+                ret.width = rect.width;
+                ret.height = rect.height;
+            }
+            //consider the worst situation: window does not have size!!
+            if (ret.width <= 0 || ret.height <= 0) {
+                console.warn("fetch container size to initialize PIXI in all ways have failed, now use default size (fallbackWidth / fallbackHeight) specified in the options instead.");
+                ret.width = fallbackWidth;
+                ret.height = fallbackHeight;
+            }
+            return ret;
+        };
+        return DefaultBoudingRectCalculator;
+    }());
     var UIStage = (function (_super) {
         __extends(UIStage, _super);
         function UIStage(app, stageOptions) {
@@ -13594,6 +13539,7 @@ var fgui;
             _this.$canvasMatrix = new PIXI.Matrix();
             _this.offsetX = 0;
             _this.offsetY = 0;
+            _this.$sizeCalcer = new DefaultBoudingRectCalculator();
             UIStageInst.push(_this);
             _this.$appContext = app;
             _this.$appContext.renderer.autoResize = false;
@@ -13750,15 +13696,15 @@ var fgui;
                 return;
             var canvas = this.$appContext.view;
             var canvasStyle = canvas.style;
-            var winSize = canvas.parentElement.getBoundingClientRect(); // { width: window.innerWidth || document.body.clientWidth, height: window.innerHeight || document.body.clientHeight };
+            var rect = this.$sizeCalcer.getRect(canvas, this.$options.fallbackWidth, this.$options.fallbackHeight);
             var shouldRotate = false;
             var orientation = this.$options.orientation;
             if (orientation != "auto" /* AUTO */) {
-                shouldRotate = orientation != "portrait" /* PORTRAIT */ && winSize.height > winSize.width
-                    || orientation == "portrait" /* PORTRAIT */ && winSize.width > winSize.height;
+                shouldRotate = orientation != "portrait" /* PORTRAIT */ && rect.height > rect.width
+                    || orientation == "portrait" /* PORTRAIT */ && rect.width > rect.height;
             }
-            var screenWidth = shouldRotate ? winSize.height : winSize.width;
-            var screenHeight = shouldRotate ? winSize.width : winSize.height;
+            var screenWidth = shouldRotate ? rect.height : rect.width;
+            var screenHeight = shouldRotate ? rect.width : rect.height;
             var stageSize = this.calculateStageSize(this.$options.scaleMode, screenWidth, screenHeight, this.$options.designWidth, this.$options.designHeight);
             var stageWidth = stageSize.stageWidth;
             var stageHeight = stageSize.stageHeight;
@@ -13778,15 +13724,15 @@ var fgui;
             if (this.$options.alignH == 0 /* LEFT */)
                 offx = 0;
             else if (this.$options.alignH == 2 /* RIGHT */)
-                offx = winSize.width - dispWidth;
+                offx = rect.width - dispWidth;
             else
-                offx = (winSize.width - dispWidth) * 0.5;
+                offx = (rect.width - dispWidth) * 0.5;
             if (this.$options.alignV == 3 /* TOP */)
                 offy = 0;
             else if (this.$options.alignV == 5 /* BOTTOM */)
-                offy = winSize.height - dispHeight;
+                offy = rect.height - dispHeight;
             else
-                offy = (winSize.height - dispHeight) * 0.5;
+                offy = (rect.height - dispHeight) * 0.5;
             var rotDeg = 0;
             if (shouldRotate) {
                 if (this.$options.orientation == "landscape" /* LANDSCAPE */) {
@@ -13860,6 +13806,90 @@ var fgui;
         }
     });
 })(fgui || (fgui = {}));
+/*this class is temporarily for the bug fixing purpose only, so once PIXI releases a new version, this class will be removed */
+var PIXI;
+(function (PIXI) {
+    var extras;
+    (function (extras) {
+        var Text = (function (_super) {
+            __extends(Text, _super);
+            function Text(text, style, canvas) {
+                var _this = _super.call(this, text, style, canvas) || this;
+                if (!PIXI.extras.Text.__init) {
+                    PIXI.extras.Text.__init = true;
+                    //override
+                    PIXI.TextMetrics.wordWrap = function (text, style, canvas) {
+                        if (!canvas)
+                            canvas = PIXI.TextMetrics["_canvas"];
+                        var context = canvas.getContext('2d');
+                        // Greedy wrapping algorithm that will wrap words as the line grows longer
+                        // than its horizontal bounds.
+                        var result = '';
+                        var firstChar = text.charAt(0);
+                        var lines = text.split('\n');
+                        var wordWrapWidth = style.wordWrapWidth;
+                        var characterCache = {};
+                        for (var i = 0; i < lines.length; i++) {
+                            var spaceLeft = wordWrapWidth;
+                            var words = lines[i].split(' ');
+                            for (var j = 0; j < words.length; j++) {
+                                var wordWidth = context.measureText(words[j]).width;
+                                if (style.breakWords && wordWidth > wordWrapWidth) {
+                                    // Word should be split in the middle
+                                    var characters = words[j].split('');
+                                    for (var c = 0; c < characters.length; c++) {
+                                        var character = characters[c];
+                                        var characterWidth = characterCache[character];
+                                        if (characterWidth === undefined) {
+                                            characterWidth = context.measureText(character).width;
+                                            characterCache[character] = characterWidth;
+                                        }
+                                        if (characterWidth > spaceLeft) {
+                                            result += "\n" + character;
+                                            spaceLeft = wordWrapWidth - characterWidth;
+                                        }
+                                        else {
+                                            if (c === 0 && (j > 0 || firstChar == ' ')) {
+                                                result += ' ';
+                                            }
+                                            result += character;
+                                            spaceLeft -= characterWidth;
+                                        }
+                                    }
+                                }
+                                else {
+                                    var wordWidthWithSpace = wordWidth + context.measureText(' ').width;
+                                    if (j === 0 || wordWidthWithSpace > spaceLeft) {
+                                        // Skip printing the newline if it's the first word of the line that is
+                                        // greater than the word wrap width.
+                                        if (j > 0) {
+                                            result += '\n';
+                                        }
+                                        result += words[j];
+                                        spaceLeft = wordWrapWidth - wordWidth;
+                                    }
+                                    else {
+                                        spaceLeft -= wordWidthWithSpace;
+                                        result += " " + words[j];
+                                    }
+                                }
+                            }
+                            if (i < lines.length - 1) {
+                                result += '\n';
+                            }
+                        }
+                        return result;
+                    };
+                }
+                return _this;
+            }
+            Text.__init = false;
+            return Text;
+        }(PIXI.Text));
+        extras.Text = Text;
+    })(extras = PIXI.extras || (PIXI.extras = {}));
+})(PIXI || (PIXI = {}));
+///<reference path="../PIXI/extras/Text.ts" />
 var fgui;
 (function (fgui) {
     var UITextField = (function (_super) {
@@ -13962,7 +13992,7 @@ var fgui;
             configurable: true
         });
         return UITextField;
-    }(PIXI.Text));
+    }(PIXI.extras.Text));
     fgui.UITextField = UITextField;
 })(fgui || (fgui = {}));
 var PIXI;
@@ -15372,7 +15402,6 @@ var fgui;
             InputDelegate.prototype.initialize = function () {
                 if (this.$inited)
                     return;
-                //this.$textField.touchable = true;
                 this.$input.$addToStage();
                 this.$input.on("updateText", this.updateText, this);
                 this.$input.on("__focusChanged" /* CHANGED */, this.focusHandler, this);
@@ -15385,7 +15414,6 @@ var fgui;
             InputDelegate.prototype.destroy = function () {
                 if (!this.$inited)
                     return;
-                //this.$textField.touchable = false;
                 this.$input.$removeFromStage();
                 this.$textField.off(fgui.InteractiveEvents.Down, this.textFieldDownHandler, this);
                 fgui.GRoot.inst.off(fgui.InteractiveEvents.Down, this.onStageDown, this);
@@ -15489,10 +15517,6 @@ var fgui;
                 enumerable: true,
                 configurable: true
             });
-            /*public resize(w:number, h:number):void {
-                this.$input.style.width = w + "px";
-                this.$input.style.height = h + "px";
-            }*/
             InputDelegate.prototype.tryHideInput = function () {
                 if (!this.$textField.visible && this.$input)
                     this.$input.$removeFromStage();

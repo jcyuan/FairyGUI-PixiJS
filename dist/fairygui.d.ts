@@ -128,28 +128,6 @@ declare namespace fgui {
         Vertical = 2,
         Both = 3,
     }
-    const enum TextureFillMode {
-        NONE = 0,
-        HORZ = 1,
-        VERT = 2,
-        DEG90 = 3,
-        DEG180 = 4,
-        DEG360 = 5,
-    }
-    const enum TextureFillBegin {
-        L = 0,
-        R = 1,
-        T = 2,
-        B = 3,
-        LT = 4,
-        RT = 5,
-        LB = 6,
-        RB = 7,
-    }
-    const enum TextureFillDirection {
-        CW = 0,
-        CCW = 1,
-    }
     const enum RelationType {
         Left_Left = 0,
         Left_Center = 1,
@@ -991,7 +969,7 @@ declare namespace fgui {
         protected $leading: number;
         protected $style: PIXI.TextStyle;
         protected $verticalAlign: VertAlignType;
-        protected $alignYOffset: number;
+        protected $offset: PIXI.Point;
         protected $color: number;
         protected $singleLine: boolean;
         protected $text: string;
@@ -1039,9 +1017,12 @@ declare namespace fgui {
         private $render();
         protected renderNow(updateBounds?: boolean): void;
         private renderWithBitmapFont(updateBounds);
+        localToGlobal(ax?: number, ay?: number, resultPoint?: PIXI.Point): PIXI.Point;
+        globalToLocal(ax?: number, ay?: number, resultPoint?: PIXI.Point): PIXI.Point;
         protected handleSizeChanged(): void;
         protected shrinkTextField(): void;
         protected layoutAlign(): void;
+        private updatePosition();
         protected handleXYChanged(): void;
         setupBeforeAdd(xml: utils.XmlNode): void;
         setupAfterAdd(xml: utils.XmlNode): void;
@@ -1761,23 +1742,6 @@ declare namespace fgui {
     }
 }
 declare namespace fgui {
-    /**fill mode for webgl only */
-    class FillSprite extends PIXI.Sprite {
-        protected _fillMode: TextureFillMode;
-        protected _fillBegin: TextureFillBegin;
-        protected _fillDir: TextureFillDirection;
-        protected _fillAmount: number;
-        protected _flip: FlipType;
-        constructor(texture?: PIXI.Texture);
-        flip: FlipType;
-        fillAmount: number;
-        fillBegin: TextureFillBegin;
-        fillMode: TextureFillMode;
-        fillDirection: TextureFillDirection;
-        private checkAndFixFillBegin();
-    }
-}
-declare namespace fgui {
     class Frame {
         addDelay: number;
         texture: PIXI.Texture;
@@ -1996,6 +1960,8 @@ declare namespace fgui {
         designHeight: number;
         alignV?: StageAlign;
         alignH?: StageAlign;
+        fallbackWidth?: number;
+        fallbackHeight?: number;
         [key: string]: string | number;
     }
     class DefaultUIStageOptions implements UIStageOptions {
@@ -2006,6 +1972,8 @@ declare namespace fgui {
         designHeight: number;
         alignV: StageAlign;
         alignH: StageAlign;
+        fallbackWidth: number;
+        fallbackHeight: number;
         [key: string]: string | number;
     }
     class UIStage extends PIXI.utils.EventEmitter {
@@ -2019,6 +1987,7 @@ declare namespace fgui {
         protected $canvasMatrix: PIXI.Matrix;
         offsetX: number;
         offsetY: number;
+        private $sizeCalcer;
         constructor(app: PIXI.Application, stageOptions?: UIStageOptions);
         readonly orientation: string;
         readonly stageWidth: number;
@@ -2039,8 +2008,14 @@ declare namespace fgui {
         dispose(): void;
     }
 }
+declare namespace PIXI.extras {
+    class Text extends PIXI.Text {
+        private static __init;
+        constructor(text?: string, style?: PIXI.TextStyle, canvas?: HTMLCanvasElement);
+    }
+}
 declare namespace fgui {
-    class UITextField extends PIXI.Text implements IUIObject {
+    class UITextField extends PIXI.extras.Text implements IUIObject {
         UIOwner: GObject;
         protected $minHeight: number;
         protected $minHeightID: number;
