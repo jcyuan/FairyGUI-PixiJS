@@ -50,7 +50,7 @@ namespace fgui {
 
         protected $style: PIXI.TextStyle;
         protected $verticalAlign: VertAlignType = VertAlignType.Top;
-        protected $alignYOffset: number = 0;
+        protected $offset: PIXI.Point = new PIXI.Point();
         protected $color: number;
         protected $singleLine:boolean = true;
 
@@ -399,7 +399,7 @@ namespace fgui {
             
             this.applyStyle();
             this.$textField.$updateMinHeight();
-            let wordWrap = (!this.$widthAutoSize && !this.$singleLine && this.autoSize != AutoSizeType.Shrink);
+            let wordWrap = !this.$widthAutoSize && this.multipleLine;
             this.$textField.width = this.$textField.style.wordWrapWidth = wordWrap ? Math.ceil(this.width) : 10000;
             this.$textField.style.wordWrap = wordWrap;
             this.$textField.style.breakWords = wordWrap;
@@ -691,8 +691,21 @@ namespace fgui {
                         charX += letterSpacing;
                     }
                 }
-
             });
+        }
+
+        public localToGlobal(ax: number = 0, ay: number = 0, resultPoint?: PIXI.Point): PIXI.Point {
+            let r = super.localToGlobal(ax, ay, resultPoint);
+            r.x -= this.$offset.x;
+            r.y -= this.$offset.y;
+            return r;
+        }
+
+        public globalToLocal(ax: number = 0, ay: number = 0, resultPoint?: PIXI.Point): PIXI.Point {
+            let r = super.globalToLocal(ax, ay, resultPoint);
+            r.x -= this.$offset.x;
+            r.y -= this.$offset.y;
+            return r;
         }
 
         protected handleSizeChanged(): void {
@@ -740,13 +753,13 @@ namespace fgui {
                 th *= this.displayObject.scale.y;
             }
             if (this.$verticalAlign == VertAlignType.Top || th == 0)
-                this.$alignYOffset = GTextField.GUTTER_Y;
+                this.$offset.y = GTextField.GUTTER_Y;
             else {
                 let dh: number = Math.max(0, this.height - th);
                 if (this.$verticalAlign == VertAlignType.Middle)
-                    this.$alignYOffset = dh * .5;
+                    this.$offset.y = dh * .5;
                 else if(this.$verticalAlign == VertAlignType.Bottom)
-                    this.$alignYOffset = dh;
+                    this.$offset.y = dh;
             }
             
             let xPos = 0;
@@ -759,14 +772,19 @@ namespace fgui {
                     xPos = this.width - tw;
                     break;
             }
+            this.$offset.x = xPos;
 
-            this.displayObject.position.set(Math.floor(this.x + xPos), Math.floor(this.y + this.$alignYOffset));
+            this.updatePosition();
+        }
+
+        private updatePosition():void {
+            this.displayObject.position.set(Math.floor(this.x + this.$offset.x), Math.floor(this.y + this.$offset.y));
         }
 
         protected handleXYChanged(): void {
             super.handleXYChanged();
             if (this.$displayObject)
-                this.$displayObject.y += this.$alignYOffset;
+                this.updatePosition();
         }
 
         public setupBeforeAdd(xml: utils.XmlNode): void {

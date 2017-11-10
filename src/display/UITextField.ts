@@ -1,6 +1,8 @@
+///<reference path="../PIXI/extras/Text.ts" />
+
 namespace fgui {
 
-    export class UITextField extends PIXI.Text implements IUIObject {
+    export class UITextField extends PIXI.extras.Text implements IUIObject {
 
         public UIOwner:GObject;
 
