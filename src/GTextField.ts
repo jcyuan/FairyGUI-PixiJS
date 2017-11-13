@@ -400,7 +400,7 @@ namespace fgui {
             this.applyStyle();
             this.$textField.$updateMinHeight();
             let wordWrap = !this.$widthAutoSize && this.multipleLine;
-            this.$textField.width = this.$textField.style.wordWrapWidth = wordWrap ? Math.ceil(this.width) : 10000;
+            this.$textField.width = this.$textField.style.wordWrapWidth = (wordWrap || this.autoSize == AutoSizeType.None) ? Math.ceil(this.width) : 10000;
             this.$textField.style.wordWrap = wordWrap;
             this.$textField.style.breakWords = wordWrap;
             this.$textField.text = this.$text;         //trigger t.dirty = true
@@ -695,10 +695,9 @@ namespace fgui {
         }
 
         public localToGlobal(ax: number = 0, ay: number = 0, resultPoint?: PIXI.Point): PIXI.Point {
-            let r = super.localToGlobal(ax, ay, resultPoint);
-            r.x -= this.$offset.x;
-            r.y -= this.$offset.y;
-            return r;
+            ax -= this.$offset.x;
+            ay -= this.$offset.y;
+            return super.localToGlobal(ax, ay, resultPoint);
         }
 
         public globalToLocal(ax: number = 0, ay: number = 0, resultPoint?: PIXI.Point): PIXI.Point {
