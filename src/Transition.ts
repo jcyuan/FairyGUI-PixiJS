@@ -994,7 +994,7 @@ namespace fgui {
         public filterCreated: boolean;
 
         public constructor() {
-            this.easeType = ParseEaseType("quadOut");
+            this.easeType = ParseEaseType("Quad.Out");
             this.value = new TransitionValue();
             this.startValue = new TransitionValue();
             this.endValue = new TransitionValue();
