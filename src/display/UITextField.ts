@@ -27,25 +27,25 @@ namespace fgui {
         /**@internal */
         $updateMinHeight():void {
             if(this.style.styleID != this.$minHeightID || this.$minHeight <= 0) {
-                let wordWrap = this.style.wordWrap;
-                this.style.wordWrap = false;        //TextMetrics.measureText bug line22990: wordWrap = wordWrap || style.wordWrap;
                 this.$minHeight = PIXI.TextMetrics.measureText("", this.style, false).lineHeight;  //no way to get the cached auto-lineheight (when style.lineHeight=0);
-                this.style.wordWrap = wordWrap;     //restore
-
                 this.$minHeightID = this.style.styleID;
             }
         }
         
         protected updateFrame():void {
-            let frm = this._texture.frame;
-            this._height = Math.max(this._height, this.$minHeight);
-            let w = frm.x + this._width, h = frm.y + this._height;
-            if(w > this._texture.baseTexture.width)
-                w = this._texture.baseTexture.width - frm.x;
-            if(h > this._texture.baseTexture.height)
-                h = this._texture.baseTexture.height - frm.y;
+            GTimer.inst.callLater(this.internalUpdateFrame, this);
+        }
 
-            if(w != frm.width || h != frm.height) {
+        private internalUpdateFrame():void {
+            if(this._texture) {
+                let frm = this._texture.frame;
+                this._height = Math.max(this._height, this.$minHeight);
+                let w = frm.x + this._width, h = frm.y + this._height;
+                if(w > this._texture.baseTexture.width)
+                    w = this._texture.baseTexture.width - frm.x;
+                if(h > this._texture.baseTexture.height)
+                    h = this._texture.baseTexture.height - frm.y;
+
                 frm.width = w / this.resolution;
                 frm.height = h / this.resolution;
                 
@@ -55,11 +55,11 @@ namespace fgui {
                 let padding = this._style.trim ? 0 : this._style.padding;
                 this._texture.trim.x = -padding;
                 this._texture.trim.y = -padding;
-                
-                this._texture.frame = frm; //trigger to update UVs;
+
+                this._texture.frame = frm;
             }
         }
-
+        
         //cancel scaling update
         protected _onTextureUpdate():void {
             this._textureID = -1;
