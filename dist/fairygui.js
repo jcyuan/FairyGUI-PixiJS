@@ -7297,7 +7297,7 @@ var fgui;
             this.applyStyle();
             this.$textField.$updateMinHeight();
             var wordWrap = !this.$widthAutoSize && this.multipleLine;
-            this.$textField.width = this.$textField.style.wordWrapWidth = wordWrap ? Math.ceil(this.width) : 10000;
+            this.$textField.width = this.$textField.style.wordWrapWidth = (wordWrap || this.autoSize == 0 /* None */) ? Math.ceil(this.width) : 10000;
             this.$textField.style.wordWrap = wordWrap;
             this.$textField.style.breakWords = wordWrap;
             this.$textField.text = this.$text; //trigger t.dirty = true
@@ -7560,10 +7560,9 @@ var fgui;
         GTextField.prototype.localToGlobal = function (ax, ay, resultPoint) {
             if (ax === void 0) { ax = 0; }
             if (ay === void 0) { ay = 0; }
-            var r = _super.prototype.localToGlobal.call(this, ax, ay, resultPoint);
-            r.x -= this.$offset.x;
-            r.y -= this.$offset.y;
-            return r;
+            ax -= this.$offset.x;
+            ay -= this.$offset.y;
+            return _super.prototype.localToGlobal.call(this, ax, ay, resultPoint);
         };
         GTextField.prototype.globalToLocal = function (ax, ay, resultPoint) {
             if (ax === void 0) { ax = 0; }
@@ -11695,7 +11694,7 @@ var fgui;
             this.tween = false;
             this.tweenTimes = 0;
             this.completed = false;
-            this.easeType = fgui.ParseEaseType("quadOut");
+            this.easeType = fgui.ParseEaseType("Quad.Out");
             this.value = new TransitionValue();
             this.startValue = new TransitionValue();
             this.endValue = new TransitionValue();
@@ -13916,22 +13915,22 @@ var fgui;
         /**@internal */
         UITextField.prototype.$updateMinHeight = function () {
             if (this.style.styleID != this.$minHeightID || this.$minHeight <= 0) {
-                var wordWrap = this.style.wordWrap;
-                this.style.wordWrap = false; //TextMetrics.measureText bug line22990: wordWrap = wordWrap || style.wordWrap;
                 this.$minHeight = PIXI.TextMetrics.measureText("", this.style, false).lineHeight; //no way to get the cached auto-lineheight (when style.lineHeight=0);
-                this.style.wordWrap = wordWrap; //restore
                 this.$minHeightID = this.style.styleID;
             }
         };
         UITextField.prototype.updateFrame = function () {
-            var frm = this._texture.frame;
-            this._height = Math.max(this._height, this.$minHeight);
-            var w = frm.x + this._width, h = frm.y + this._height;
-            if (w > this._texture.baseTexture.width)
-                w = this._texture.baseTexture.width - frm.x;
-            if (h > this._texture.baseTexture.height)
-                h = this._texture.baseTexture.height - frm.y;
-            if (w != frm.width || h != frm.height) {
+            fgui.GTimer.inst.callLater(this.internalUpdateFrame, this);
+        };
+        UITextField.prototype.internalUpdateFrame = function () {
+            if (this._texture) {
+                var frm = this._texture.frame;
+                this._height = Math.max(this._height, this.$minHeight);
+                var w = frm.x + this._width, h = frm.y + this._height;
+                if (w > this._texture.baseTexture.width)
+                    w = this._texture.baseTexture.width - frm.x;
+                if (h > this._texture.baseTexture.height)
+                    h = this._texture.baseTexture.height - frm.y;
                 frm.width = w / this.resolution;
                 frm.height = h / this.resolution;
                 this._texture.trim.width = frm.width;
@@ -13939,7 +13938,7 @@ var fgui;
                 var padding = this._style.trim ? 0 : this._style.padding;
                 this._texture.trim.x = -padding;
                 this._texture.trim.y = -padding;
-                this._texture.frame = frm; //trigger to update UVs;
+                this._texture.frame = frm;
             }
         };
         //cancel scaling update

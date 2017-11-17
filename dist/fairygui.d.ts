@@ -2022,6 +2022,7 @@ declare namespace fgui {
         constructor(owner?: GObject);
         readonly minHeight: number;
         protected updateFrame(): void;
+        private internalUpdateFrame();
         protected _onTextureUpdate(): void;
         width: number;
         height: number;
