@@ -6439,7 +6439,7 @@ var fgui;
         GLoader.prototype.loadExternal = function () {
             var _this = this;
             new PIXI.loaders.Loader()
-                .add("__externalLoaderRes", this.$url, { loadType: PIXI.loaders.Resource.LOAD_TYPE.IMAGE }) //supposed to load an image
+                .add("__externalLoaderRes_" + this.id, this.$url, { loadType: PIXI.loaders.Resource.LOAD_TYPE.IMAGE }) //supposed to load an image
                 .load(function (ld, res) {
                 _this.$loadResCompleted(ld, res);
             });
@@ -6449,7 +6449,7 @@ var fgui;
             texture.destroy(true);
         };
         GLoader.prototype.$loadResCompleted = function (ld, res) {
-            var resTex = res.__externalLoaderRes;
+            var resTex = res["__externalLoaderRes_" + this.id];
             if (resTex.texture)
                 this.onExternalLoadSuccess(resTex.texture);
             else
