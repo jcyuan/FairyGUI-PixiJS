@@ -5,9 +5,6 @@ namespace fgui {
 
     export class GLoader extends GObject implements IAnimationGear, IColorGear {
 
-        private $gearAnimation: GearAnimation;
-        private $gearColor: GearColor;
-
         protected $url: string;
         protected $align: AlignType;
         protected $verticalAlign: VertAlignType;
@@ -31,7 +28,7 @@ namespace fgui {
         private $updatingLayout: boolean;
 
         private static $errorSignPool: utils.GObjectRecycler = new utils.GObjectRecycler();
-
+        
         public constructor() {
             super();
             this.$playing = true;
@@ -41,9 +38,6 @@ namespace fgui {
             this.$verticalAlign = VertAlignType.Top;
             this.$showErrorSign = true;
             this.$color = 0xFFFFFF;
-
-            this.$gearAnimation = new GearAnimation(this);
-            this.$gearColor = new GearColor(this);
         }
 
         protected createDisplayObject(): void {
@@ -265,22 +259,23 @@ namespace fgui {
 
         /**overwrite this for load resources by your own way */
         protected loadExternal(): void {
-            new PIXI.loaders.Loader()
-                .add("__externalLoaderRes_" + this.id, this.$url, { loadType: PIXI.loaders.Resource.LOAD_TYPE.IMAGE })  //supposed to load an image
-                .load((ld: PIXI.loaders.Loader, res: PIXI.loaders.ResourceDictionary) => {
-                    this.$loadResCompleted(ld, res);
-                });
+            let texture = PIXI.utils.TextureCache[this.$url];
+            if (!texture) {
+                texture = new PIXI.Texture(PIXI.BaseTexture.fromImage(this.$url));
+                PIXI.Texture.addToCache(texture, this.$url);
+            }
+            this.$loadResCompleted(texture);
         }
 
         /**free the resource you loaded */
         protected freeExternal(texture: PIXI.Texture): void {
+            PIXI.Texture.removeFromCache(texture);
             texture.destroy(true);
         }
 
-        private $loadResCompleted(ld: PIXI.loaders.Loader, res: PIXI.loaders.ResourceDictionary): void {
-            let resTex: PIXI.loaders.Resource = res["__externalLoaderRes_" + this.id];
-            if (resTex.texture)
-                this.onExternalLoadSuccess(resTex.texture);
+        private $loadResCompleted(res: PIXI.Texture): void {
+            if (res)
+                this.onExternalLoadSuccess(res);
             else
                 this.onExternalLoadFailed();
         }
