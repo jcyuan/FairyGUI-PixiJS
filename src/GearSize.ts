@@ -58,7 +58,9 @@ namespace fgui {
                 let a: boolean = gv.width != this.$owner.width || gv.height != this.$owner.height;
                 let b: boolean = gv.scaleX != this.$owner.scaleX || gv.scaleY != this.$owner.scaleY;
                 if (a || b) {
-                    this.$owner.internalVisible++;
+                    if(this.$owner.hasGearController(0, this.$controller))
+                        this.$lockToken = this.$owner.lockGearDisplay();
+
                     this.$tweenTarget = gv;
 
                     let vars: any = {
@@ -81,7 +83,7 @@ namespace fgui {
                         .wait(this.$tweenDelay * 1000)
                         .to({ width: gv.width, height: gv.height, scaleX: gv.scaleX, scaleY: gv.scaleY },
                         this.$tweenTime * 1000, this.$easeType)
-                        .call(this.tweenEndCall, null, this);
+                        .call(this.tweenComplete, null, this);
                 }
             }
             else {
@@ -92,9 +94,12 @@ namespace fgui {
             }
         }
 
-        private tweenEndCall():void
-        {
-            this.$owner.internalVisible--;
+        private tweenComplete():void {
+            if(this.$lockToken != 0)
+			{
+                this.$owner.releaseGearDisplay(this.$lockToken);
+                this.$lockToken = 0;
+			}
             this.$tweener = null;
             this.$owner.emit(GearEvent.GEAR_STOP, this);
         }

@@ -98,6 +98,31 @@ namespace fgui {
         export const enum ProgressTitleType { Percent, ValueAndMax, Value, Max };
     
         export const enum FlipType { None, Horizontal, Vertical, Both };
+
+        export const enum TextureFillMode {
+            NONE,
+            HORZ,         //begin from: L, R
+            VERT,         //begin from: T, B
+            DEG90,        //begin from: LT, RT, LB, RB
+            DEG180,       //begin from: L, R, T, B
+            DEG360        //begin from: L, R, T, B
+        }
+    
+        export const enum TextureFillBegin {
+            L,
+            R,
+            T,
+            B,
+            LT,
+            RT,
+            LB,
+            RB
+        }
+    
+        export const enum TextureFillDirection {  //for deg item only
+            CW,
+            CCW
+        }
     
         export const enum RelationType {
             Left_Left = 0,

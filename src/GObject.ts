@@ -1,5 +1,3 @@
-/// <reference path="../typings/pixi.js.d.ts" />
-
 namespace fgui {
 
     export class GObject {
@@ -24,7 +22,7 @@ namespace fgui {
         protected $pivotAsAnchor: boolean = false;
         protected $pivotOffset: PIXI.Point = new PIXI.Point();
         protected $sortingOrder: number = 0;
-        protected $internalVisible: number = 1;
+        protected $internalVisible: boolean = true;
         protected $focusable: boolean = false;
         protected $tooltips: string;
         protected $pixelSnapping: boolean = false;
@@ -34,6 +32,7 @@ namespace fgui {
         protected $gears: GearBase<GObject>[];
         protected $displayObject: PIXI.DisplayObject;
         protected $dragBounds: PIXI.Rectangle;
+        protected $handlingController:boolean = false;
 
         private static $colorHelper: utils.ColorMatrix;
         protected $colorFilter: PIXI.filters.ColorMatrixFilter;
@@ -425,29 +424,26 @@ namespace fgui {
                     this.$parent.childStateChanged(this);
                     this.$parent.setBoundsChangedFlag();
                 }
+                this.emit(DisplayObjectEvent.VISIBLE_CHANGED, this.$visible, this);
             }
         }
 
         /**@internal */
-        set internalVisible(value: number) {
-            if (value < 0)
-                value = 0;
-            let oldValue: boolean = this.$internalVisible > 0;
-            let newValue: boolean = value > 0;
-            this.$internalVisible = value;
-            if (oldValue != newValue) {
+        set internalVisible(value: boolean) {
+            if (value != this.$internalVisible) {
+                this.$internalVisible = value;
                 if (this.$parent)
                     this.$parent.childStateChanged(this);
             }
         }
 
         /**@internal */
-        get internalVisible(): number {
+        get internalVisible(): boolean {
             return this.$internalVisible;
         }
 
         public get finalVisible(): boolean {
-            return this.$visible && this.$internalVisible > 0 && (!this.$group || this.$group.finalVisible);
+            return this.$visible && this.$internalVisible && (!this.$group || this.$group.finalVisible);
         }
 
         public get sortingOrder(): number {
@@ -604,6 +600,51 @@ namespace fgui {
                 this.$gears[index].updateFromRelations(dx, dy);
         }
 
+        public hasGearController(index:number, c:controller.Controller):boolean
+		{
+			return this.$gears[index] && this.$gears[index].controller == c;
+		}
+
+        /**@internal */
+        lockGearDisplay():number
+		{
+			let g = this.$gears[0] as GearDisplay;
+			if(g && g.controller)
+			{
+				let ret = g.lock();
+				this.checkGearVisible();
+				return ret;
+			}
+			else
+				return 0;
+        }
+        
+		/**@internal */
+		releaseGearDisplay(token:number):void
+		{
+			let g = this.$gears[0] as GearDisplay;
+			if(g && g.controller)
+			{
+				g.release(token);
+				this.checkGearVisible();
+			}
+        }
+        
+        private checkGearVisible():void
+		{
+			if(this.$handlingController)
+                return;
+            
+            let g = this.$gears[0] as GearDisplay;
+			let v = !g || g.connected;
+			if(v != this.$internalVisible)
+			{
+				this.$internalVisible = v;
+				if(this.$parent)
+                    this.$parent.childStateChanged(this);
+			}
+		}
+
         public get gearXY(): GearXY {
             return this.getGear(GearType.XY) as GearXY;
         }
@@ -615,7 +656,7 @@ namespace fgui {
         public get gearLook(): GearLook {
             return this.getGear(GearType.Look) as GearLook;
         }
-
+        
         public get relations(): Relations {
             return this.$relations;
         }
@@ -831,11 +872,14 @@ namespace fgui {
         }
 
         public handleControllerChanged(c: controller.Controller): void {
+            this.$handlingController = true;
             for (let i: number = 0; i < GearType.Count; i++) {
                 let gear: GearBase<GObject> = this.$gears[i];
                 if (gear != null && gear.controller == c)
                     gear.apply();
             }
+            this.$handlingController = false;
+            this.checkGearVisible();
         }
 
         protected switchDisplayObject(newObj: PIXI.DisplayObject): void {

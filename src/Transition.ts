@@ -56,13 +56,13 @@ namespace fgui {
         public constructor(owner: GComponent) {
             this.$owner = owner;
             this.$items = [];
-            this.$owner.on("removed", this.$ownerRemoved, this);
+            this.$owner.on(DisplayObjectEvent.VISIBLE_CHANGED, this.$ownerVisibleChanged, this);
         }
 
-        private $ownerRemoved():void
+        private $ownerVisibleChanged(vis:boolean, owner:GComponent):void
         {
-            if ((this.$options & Transition.OPTION_AUTO_STOP_DISABLED) == 0)
-				this.stop((this.$options & Transition.OPTION_AUTO_STOP_AT_END) != 0 ? true : false, false);
+            if ((this.$options & Transition.OPTION_AUTO_STOP_DISABLED) == 0 && vis === false)
+                this.stop((this.$options & Transition.OPTION_AUTO_STOP_AT_END) != 0 ? true : false, false);
         }
 
         public get autoPlay(): boolean {
@@ -141,13 +141,12 @@ namespace fgui {
                 this.$onCompleteParam = onCompleteParam;
                 this.$onCompleteObj = onCompleteObj;
 
-                this.$owner.internalVisible++;
                 if ((this.$options & Transition.OPTION_IGNORE_DISPLAY_CONTROLLER) != 0) {
                     this.$items.forEach(item => {
                         if (item.target != null && item.target != this.$owner)
-                            item.target.internalVisible++;
+                            item.lockToken = item.target.lockGearDisplay();
                     }, this);
-                }
+				}
             }
             else if (onComplete != null) {
                 onCompleteParam && onCompleteParam.length ? onComplete.apply(onCompleteObj, onCompleteParam) :
@@ -166,8 +165,6 @@ namespace fgui {
                 this.$onComplete = null;
                 this.$onCompleteParam = null;
                 this.$onCompleteObj = null;
-
-                this.$owner.internalVisible--;
 
                 let cnt: number = this.$items.length;
                 let item: TransitionItem;
@@ -196,9 +193,11 @@ namespace fgui {
         }
 
         private stopItem(item: TransitionItem, setToComplete: boolean): void {
-            if ((this.$options & Transition.OPTION_IGNORE_DISPLAY_CONTROLLER) != 0 && item.target != this.$owner)
-                item.target.internalVisible--;
-
+            if (item.lockToken != 0) {
+				item.target.releaseGearDisplay(item.lockToken);
+				item.lockToken = 0;
+            }
+            
             if (item.type == TransitionActionType.ColorFilter && item.filterCreated)
                 item.target.filters = null;
 
@@ -234,8 +233,8 @@ namespace fgui {
 
         public dispose(): void {
             GTimer.inst.remove(this.internalPlay, this);
-            this.$owner.off("removed", this.$ownerRemoved, this);
-
+            this.$owner.off(DisplayObjectEvent.VISIBLE_CHANGED, this.$ownerVisibleChanged, this);
+            
             this.$playing = false;
             this.$items.forEach(item => {
                 if (item.target == null || item.completed)
@@ -616,7 +615,7 @@ namespace fgui {
         private checkAllComplete() {
             if (this.$playing && this.$totalTasks == 0) {
                 if (this.$totalTimes < 0) {
-                    //the reason we don't call 'internalPlay' immediately here is because of the onChange handler issue, the handler's been called all the time even the tween is in waiting/complete status.
+                    //the reason we don't call 'internalPlay' immediately here is because of the onChange handler issue, the handler's been calling all the time even the tween is in waiting/complete status.
                     GTimer.inst.callLater(this.internalPlay, this);
                 }
                 else {
@@ -625,21 +624,24 @@ namespace fgui {
                         GTimer.inst.callLater(this.internalPlay, this);
                     else {
                         this.$playing = false;
-                        this.$owner.internalVisible--;
-
                         this.$items.forEach(item => {
-                            if (item.target != null) {
-                                if ((this.$options & Transition.OPTION_IGNORE_DISPLAY_CONTROLLER) != 0 && item.target != this.$owner)
-                                    item.target.internalVisible--;
-                            }
-
-                            if (item.filterCreated) {
-                                item.filterCreated = false;
-                                item.target.filters = null;
-                            }
-                        }, this);
-
-                        if (this.$onComplete != null) {
+                            if (item.target != null)
+							{
+								if (item.lockToken != 0)
+								{
+									item.target.releaseGearDisplay(item.lockToken);
+									item.lockToken = 0;
+								}
+								
+								if (item.filterCreated)
+								{
+									item.filterCreated = false;
+									item.target.filters = null;
+								}
+							}
+                        });
+                        
+						if (this.$onComplete != null) {
                             let func: Function = this.$onComplete;
                             let param: any = this.$onCompleteParam;
                             let thisObj: any = this.$onCompleteObj;
@@ -985,13 +987,14 @@ namespace fgui {
         public hookObj: any;
         public hook2: () => void;
         public hook2Obj: any;
-
+        
         public tweenTimes: number = 0;
 
         public tweener: createjs.Tween;
         public completed: boolean = false;
         public target: GObject;
         public filterCreated: boolean;
+        public lockToken:number = 0;
 
         public constructor() {
             this.easeType = ParseEaseType("Quad.Out");

@@ -57,7 +57,9 @@ namespace fgui {
                 let a: boolean = gv.alpha != this.$owner.alpha;
                 let b: boolean = gv.rotation != this.$owner.rotation;
                 if (a || b) {
-                    this.$owner.internalVisible++;
+                    if(this.$owner.hasGearController(0, this.$controller))
+                        this.$lockToken = this.$owner.lockGearDisplay();
+
                     this.$tweenTarget = gv;
 
                     let vars: any = {
@@ -78,7 +80,7 @@ namespace fgui {
                     this.$tweener = createjs.Tween.get(this.$tweenValue, vars)
                         .wait(this.$tweenDelay * 1000)
                         .to({ x: gv.alpha, y: gv.rotation }, this.$tweenTime * 1000, this.$easeType)
-                        .call(this.tweenEndCall, null, this);
+                        .call(this.tweenComplete, null, this);
                 }
             }
             else {
@@ -90,9 +92,12 @@ namespace fgui {
             }
         }
 
-        private tweenEndCall():void
+        private tweenComplete():void
         {
-            this.$owner.internalVisible--;
+            if(this.$lockToken != 0) {
+                this.$owner.releaseGearDisplay(this.$lockToken);
+                this.$lockToken = 0;
+            }
             this.$tweener = null;
             this.$owner.emit(GearEvent.GEAR_STOP, this);
         }

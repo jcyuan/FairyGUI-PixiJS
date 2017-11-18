@@ -44,7 +44,7 @@ namespace fgui {
         }
 
         public dispose(): void {
-            GTimer.inst.remove(this.$reRenderLater, this);
+            GTimer.inst.remove(this.$validate, this);
             this.off("added", this.$added, this);
             this.off("removed", this.$removed, this);
             this.$transitions.forEach((trans: Transition): void => {
@@ -93,6 +93,7 @@ namespace fgui {
                         this.$children.push(child);
                     else
                         this.$children.splice(index, 0, child);
+
                     this.childStateChanged(child);
                     this.setBoundsChangedFlag();
                 }
@@ -165,16 +166,6 @@ namespace fgui {
             for (let i: number = 0; i < cnt; ++i) {
                 if (this.$children[i].name == name)
                     return this.$children[i];
-            }
-            return null;
-        }
-
-        public getVisibleChild(name: string): GObject {
-            let cnt: number = this.$children.length;
-            for (let i: number = 0; i < cnt; ++i) {
-                let child: GObject = this.$children[i];
-                if (child.finalVisible && child.name == name)
-                    return child;
             }
             return null;
         }
@@ -565,11 +556,11 @@ namespace fgui {
                 return;
             if (!this.$boundsChanged) {
                 this.$boundsChanged = true;
-                GTimer.inst.callLater(this.$reRenderLater, this);
+                GTimer.inst.callLater(this.$validate, this);
             }
         }
 
-        private $reRenderLater(dt: number): void {
+        private $validate(dt: number): void {
             if (this.$boundsChanged)
                 this.updateBounds();
         }
@@ -851,8 +842,8 @@ namespace fgui {
 
             this.relations.setup(xml);
 
-            this.$children.forEach((child, i) => child.relations.setup(displayList[i].desc));
             this.$children.forEach((child, i) => {
+                child.relations.setup(displayList[i].desc);
                 child.setupAfterAdd(displayList[i].desc);
                 child.$inProgressBuilding = false;
             });

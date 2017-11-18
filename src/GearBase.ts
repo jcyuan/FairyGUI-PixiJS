@@ -8,17 +8,18 @@ namespace fgui {
         protected $easeType: (t: number) => number;
         protected $tweenTime: number;
         protected $tweenDelay: number;
-
+        protected $lockToken:number = 0;
+        
         protected $owner: GObject & T;
         protected $controller: controller.Controller;
 
         public constructor(owner: GObject & T) {
             this.$owner = owner;
-            this.$easeType = ParseEaseType("quadOut");
+            this.$easeType = ParseEaseType("Quad.Out");
             this.$tweenTime = 0.3;
             this.$tweenDelay = 0;
         }
-
+        
         public get controller(): controller.Controller {
             return this.$controller;
         }
