@@ -1,4 +1,3 @@
-/// <reference path="../typings/pixi.js.d.ts" />
 declare namespace fgui {
     class InteractiveEvents {
         static Down: string;
@@ -128,6 +127,28 @@ declare namespace fgui {
         Vertical = 2,
         Both = 3,
     }
+    const enum TextureFillMode {
+        NONE = 0,
+        HORZ = 1,
+        VERT = 2,
+        DEG90 = 3,
+        DEG180 = 4,
+        DEG360 = 5,
+    }
+    const enum TextureFillBegin {
+        L = 0,
+        R = 1,
+        T = 2,
+        B = 3,
+        LT = 4,
+        RT = 5,
+        LB = 6,
+        RB = 7,
+    }
+    const enum TextureFillDirection {
+        CW = 0,
+        CCW = 1,
+    }
     const enum RelationType {
         Left_Left = 0,
         Left_Center = 1,
@@ -191,7 +212,7 @@ declare namespace fgui {
         protected $pivotAsAnchor: boolean;
         protected $pivotOffset: PIXI.Point;
         protected $sortingOrder: number;
-        protected $internalVisible: number;
+        protected $internalVisible: boolean;
         protected $focusable: boolean;
         protected $tooltips: string;
         protected $pixelSnapping: boolean;
@@ -200,6 +221,7 @@ declare namespace fgui {
         protected $gears: GearBase<GObject>[];
         protected $displayObject: PIXI.DisplayObject;
         protected $dragBounds: PIXI.Rectangle;
+        protected $handlingController: boolean;
         private static $colorHelper;
         protected $colorFilter: PIXI.filters.ColorMatrixFilter;
         protected $lastColorComponents: number[];
@@ -266,6 +288,8 @@ declare namespace fgui {
         getGear(index: number | GearType): GearBase<GObject>;
         protected updateGear(index: GearType): void;
         updateGearFromRelations(index: GearType, dx: number, dy: number): void;
+        hasGearController(index: number, c: controller.Controller): boolean;
+        private checkGearVisible();
         readonly gearXY: GearXY;
         readonly gearSize: GearSize;
         readonly gearLook: GearLook;
@@ -363,7 +387,6 @@ declare namespace fgui {
         removeChildren(beginIndex?: number, endIndex?: number, dispose?: boolean): void;
         getChildAt(index?: number): GObject;
         getChild(name: string): GObject;
-        getVisibleChild(name: string): GObject;
         getChildInGroup(name: string, group: GGroup): GObject;
         getChildById(id: string): GObject;
         getChildIndex(child: GObject): number;
@@ -398,7 +421,7 @@ declare namespace fgui {
         protected handleSizeChanged(): void;
         protected handleGrayedChanged(): void;
         setBoundsChangedFlag(): void;
-        private $reRenderLater(dt);
+        private $validate(dt);
         ensureBoundsCorrect(): void;
         protected updateBounds(): void;
         setBounds(ax: number, ay: number, aw: number, ah?: number): void;
@@ -516,6 +539,7 @@ declare namespace fgui {
         protected $easeType: (t: number) => number;
         protected $tweenTime: number;
         protected $tweenDelay: number;
+        protected $lockToken: number;
         protected $owner: GObject & T;
         protected $controller: controller.Controller;
         constructor(owner: GObject & T);
@@ -556,9 +580,13 @@ declare namespace fgui {
 }
 declare namespace fgui {
     class GearDisplay extends GearBase<GObject> {
+        private $vid;
         pages: string[];
         constructor(owner: GObject);
         protected init(): void;
+        lock(): number;
+        release(token: number): void;
+        readonly connected: boolean;
         apply(): void;
     }
 }
@@ -584,7 +612,7 @@ declare namespace fgui {
         protected init(): void;
         protected addStatus(pageId: string, value: string): void;
         apply(): void;
-        private tweenEndCall();
+        private tweenComplete();
         updateState(): void;
     }
 }
@@ -599,7 +627,7 @@ declare namespace fgui {
         protected init(): void;
         protected addStatus(pageId: string, value: string): void;
         apply(): void;
-        private tweenEndCall();
+        private tweenComplete();
         updateState(): void;
         updateFromRelations(dx: number, dy: number): void;
     }
@@ -626,7 +654,7 @@ declare namespace fgui {
         protected init(): void;
         protected addStatus(pageId: string, value: string): void;
         apply(): void;
-        private tweenEndCall();
+        private tweenComplete();
         updateState(): void;
         updateFromRelations(dx: number, dy: number): void;
     }
@@ -830,8 +858,6 @@ declare namespace fgui.utils {
 }
 declare namespace fgui {
     class GLoader extends GObject implements IAnimationGear, IColorGear {
-        private $gearAnimation;
-        private $gearColor;
         protected $url: string;
         protected $align: AlignType;
         protected $verticalAlign: VertAlignType;
@@ -874,7 +900,7 @@ declare namespace fgui {
         protected loadExternal(): void;
         /**free the resource you loaded */
         protected freeExternal(texture: PIXI.Texture): void;
-        private $loadResCompleted(ld, res);
+        private $loadResCompleted(res);
         /**content loaded */
         protected onExternalLoadSuccess(texture: PIXI.Texture): void;
         protected onExternalLoadFailed(): void;
@@ -1489,7 +1515,7 @@ declare namespace fgui {
         static OPTION_AUTO_STOP_AT_END: number;
         private static FRAME_RATE;
         constructor(owner: GComponent);
-        private $ownerRemoved();
+        private $ownerVisibleChanged(vis, owner);
         autoPlay: boolean;
         changeRepeat(value: number): void;
         /**
@@ -1739,6 +1765,25 @@ declare namespace fgui {
         lineHeight: number;
         channel: number;
         texture: PIXI.Texture;
+    }
+}
+declare namespace fgui {
+    /**for webgl only */
+    class FillSprite extends PIXI.Sprite {
+        protected _fillMode: TextureFillMode;
+        protected _fillBegin: TextureFillBegin;
+        protected _fillDir: TextureFillDirection;
+        protected _fillAmount: number;
+        protected _flip: FlipType;
+        protected _percent: number;
+        constructor(texture?: PIXI.Texture);
+        flip: FlipType;
+        fillAmount: number;
+        fillBegin: TextureFillBegin;
+        fillMode: TextureFillMode;
+        fillDirection: TextureFillDirection;
+        private checkAndFixFillBegin();
+        amount: number;
     }
 }
 declare namespace fgui {
@@ -2034,6 +2079,7 @@ declare namespace fgui {
     const enum DisplayObjectEvent {
         XY_CHANGED = "__xyChanged",
         SIZE_CHANGED = "__sizeChanged",
+        VISIBLE_CHANGED = "__visibleChanged",
         SIZE_DELAY_CHANGE = "__sizeDelayChange",
     }
 }
@@ -2079,6 +2125,11 @@ declare namespace fgui {
         Change = "__textChange",
         FocusIn = "__textFocusIn",
         FocusOut = "__textFocusOut",
+    }
+}
+declare namespace fgui {
+    const enum TransitionEvent {
+        Complete = "__transComplete",
     }
 }
 declare namespace PIXI.extras {
