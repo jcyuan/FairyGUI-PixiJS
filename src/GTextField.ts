@@ -168,7 +168,7 @@ namespace fgui {
         }
 
         public get font(): string {
-            return this.$font;
+            return this.$font || UIConfig.defaultFont;
         }
 
         public set font(value: string) {
