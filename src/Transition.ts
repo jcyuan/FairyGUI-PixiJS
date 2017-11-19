@@ -545,7 +545,7 @@ namespace fgui {
         }
 
         private $delayCall2(item: TransitionItem) {
-            this.disposeTween(item);
+            this.disposeTween(item, true);
             this.$totalTasks--;
             item.completed = true;
 
@@ -561,7 +561,7 @@ namespace fgui {
         }
 
         private $tweenComplete(event:any, item: TransitionItem) {
-            this.disposeTween(item);
+            this.disposeTween(item, true);
             this.$totalTasks--;
             item.completed = true;
             if (item.hook2 != null)
@@ -606,7 +606,7 @@ namespace fgui {
         }
 
         private $playTransComplete(item: TransitionItem) {
-            this.disposeTween(item);
+            this.disposeTween(item, true);
             this.$totalTasks--;
             item.completed = true;
             this.checkAllComplete();
