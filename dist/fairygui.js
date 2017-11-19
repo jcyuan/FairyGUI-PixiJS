@@ -7093,7 +7093,7 @@ var fgui;
         });
         Object.defineProperty(GTextField.prototype, "font", {
             get: function () {
-                return this.$font;
+                return this.$font || fgui.UIConfig.defaultFont;
             },
             set: function (value) {
                 if (this.$font != value) {
