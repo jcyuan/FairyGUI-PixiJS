@@ -11331,7 +11331,7 @@ var fgui;
             this.startTween(item);
         };
         Transition.prototype.$delayCall2 = function (item) {
-            this.disposeTween(item);
+            this.disposeTween(item, true);
             this.$totalTasks--;
             item.completed = true;
             this.applyValue(item, item.value);
@@ -11343,7 +11343,7 @@ var fgui;
             this.applyValue(item, item.value);
         };
         Transition.prototype.$tweenComplete = function (event, item) {
-            this.disposeTween(item);
+            this.disposeTween(item, true);
             this.$totalTasks--;
             item.completed = true;
             if (item.hook2 != null)
@@ -11385,7 +11385,7 @@ var fgui;
             item.tweener = null;
         };
         Transition.prototype.$playTransComplete = function (item) {
-            this.disposeTween(item);
+            this.disposeTween(item, true);
             this.$totalTasks--;
             item.completed = true;
             this.checkAllComplete();
