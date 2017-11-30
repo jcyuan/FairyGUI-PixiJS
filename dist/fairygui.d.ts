@@ -176,6 +176,11 @@ declare namespace fgui {
         BottomExt_Bottom = 23,
         Size = 24,
     }
+    const enum ListChildrenRenderOrder {
+        Ascent = 0,
+        Descent = 1,
+        Arch = 2,
+    }
     function ParseOverflowType(value: string): OverflowType;
     function ParseScrollType(value: string): ScrollType;
     function ParseLoaderFillType(value: string): LoaderFillType;
@@ -189,6 +194,7 @@ declare namespace fgui {
     function ParseAutoSizeType(value: string): AutoSizeType;
     function ParseAlignType(value: string): AlignType;
     function ParseVertAlignType(value: string): VertAlignType;
+    function ParseListChildrenRenderOrder(value: string): ListChildrenRenderOrder;
     function ParseEaseType(name: string): (t: number) => number;
 }
 declare namespace fgui {
@@ -392,7 +398,7 @@ declare namespace fgui {
         getChildIndex(child: GObject): number;
         setChildIndex(child: GObject, index?: number): void;
         setChildIndexBefore(child: GObject, index: number): number;
-        private $setChildIndex(child, oldIndex, index?);
+        protected $setChildIndex(child: GObject, oldIndex: number, index?: number): number;
         swapChildren(child1: GObject, child2: GObject): void;
         swapChildrenAt(index1: number, index2?: number): void;
         readonly numChildren: number;
@@ -430,6 +436,7 @@ declare namespace fgui {
         getSnappingPosition(xValue: number, yValue: number, resultPoint?: PIXI.Point): PIXI.Point;
         childSortingOrderChanged(child: GObject, oldValue: number, newValue?: number): void;
         private constructInternal(objectPool, poolIndex);
+        protected appendChildrenList(): void;
         protected constructFromXML(xml: utils.XmlNode): void;
         private $added(d);
         private $removed(d);
@@ -743,7 +750,6 @@ declare namespace fgui {
         private $align;
         private $verticalAlign;
         private $selectionController;
-        private $lastSelectedIndex;
         private $pool;
         private $virtual;
         private $loop;
@@ -756,9 +762,19 @@ declare namespace fgui {
         private $virtualListChanged;
         private $virtualItems;
         private $eventLocked;
+        protected $apexIndex: number;
+        private $childrenRenderOrder;
         constructor();
+        childrenRenderOrder: ListChildrenRenderOrder;
+        apexIndex: number;
+        /**@override */
+        protected appendChildrenList(): void;
         /**@override */
         setXY(xv: number, yv: number): void;
+        /**@override */
+        protected $setChildIndex(child: GObject, oldIndex: number, index?: number): number;
+        /**@override */
+        childStateChanged(child: GObject): void;
         dispose(): void;
         layout: ListLayoutType;
         lineCount: number;
@@ -992,13 +1008,13 @@ declare namespace fgui {
         protected $lines: LineInfo[];
         protected $bitmapPool: PIXI.Sprite[];
         protected $font: string;
-        protected $leading: number;
         protected $style: PIXI.TextStyle;
         protected $verticalAlign: VertAlignType;
         protected $offset: PIXI.Point;
         protected $color: number;
         protected $singleLine: boolean;
         protected $text: string;
+        protected $fontProperties: PIXI.FontMetrics;
         protected $autoSize: AutoSizeType;
         protected $widthAutoSize: boolean;
         protected $heightAutoSize: boolean;
@@ -1007,8 +1023,8 @@ declare namespace fgui {
         protected $sizeDirty: boolean;
         protected $textWidth: number;
         protected $textHeight: number;
-        protected static GUTTER_X: number;
-        protected static GUTTER_Y: number;
+        static GUTTER_X: number;
+        static GUTTER_Y: number;
         constructor();
         protected createDisplayObject(): void;
         private switchBitmapMode(val);
@@ -1020,6 +1036,7 @@ declare namespace fgui {
         protected getColor(): number;
         protected setColor(value: number): void;
         titleColor: number;
+        lineHeight: number;
         font: string;
         fontSize: number;
         align: AlignType;
@@ -1559,7 +1576,7 @@ declare namespace fgui {
         private $tweenUpdate(event, item);
         private $tweenComplete(event, item);
         private $tweenRepeatComplete(event, item);
-        private disposeTween(item, force?);
+        private disposeTween(item);
         private $playTransComplete(item);
         private checkAllComplete();
         private applyValue(item, value);
@@ -1823,7 +1840,6 @@ declare namespace fgui {
     class InputElement extends PIXI.utils.EventEmitter {
         private htmlInput;
         private $requestToShow;
-        private $requestToHide;
         private inputElement;
         private inputDiv;
         private $scaleX;
@@ -2056,6 +2072,14 @@ declare namespace fgui {
 declare namespace PIXI.extras {
     class Text extends PIXI.Text {
         private static __init;
+        /**
+         * Check whether a byte is an emoji character or not.
+         *
+         * @param {number} charCode - the byte to test.
+         * @param {number} nextCharCode - the possible second byte of the emoji.
+         * @return {number} 0 means not a emoji, 1 means single byte, 2 means double bytes.
+         */
+        static isEmojiChar(charCode: number, nextCharCode: number): number;
         constructor(text?: string, style?: PIXI.TextStyle, canvas?: HTMLCanvasElement);
     }
 }
