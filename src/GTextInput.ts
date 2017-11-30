@@ -156,6 +156,8 @@ namespace fgui {
         }
 
         protected renderNow(updateBounds: boolean = true): void {
+            this.$requireRender = false;
+            this.$sizeDirty = false;
             this.$util.$updateProperties();
             if(this.$isTyping)
                 this.decorateInputbox();

@@ -46,8 +46,7 @@ namespace fgui {
         protected $lines: LineInfo[];
         protected $bitmapPool: PIXI.Sprite[];
         protected $font: string;   //could be either fontFamily or an URI pointed to a bitmap font resource
-        protected $leading: number = 0;
-
+        
         protected $style: PIXI.TextStyle;
         protected $verticalAlign: VertAlignType = VertAlignType.Top;
         protected $offset: PIXI.Point = new PIXI.Point();
@@ -55,6 +54,7 @@ namespace fgui {
         protected $singleLine:boolean = true;
 
         protected $text: string = "";
+        protected $fontProperties:PIXI.FontMetrics;
 
         protected $autoSize: AutoSizeType;
         protected $widthAutoSize: boolean;
@@ -66,10 +66,10 @@ namespace fgui {
 
         protected $textWidth: number = 0;
         protected $textHeight: number = 0;
-
-        protected static GUTTER_X: number = 2;
-        protected static GUTTER_Y: number = 2;
-
+        
+        public static GUTTER_X: number = 2;
+        public static GUTTER_Y: number = 2;
+        
         public constructor() {
             super();
 
@@ -166,6 +166,19 @@ namespace fgui {
         public set titleColor(value: number) {
             this.color = value;
         }
+        
+        public get lineHeight():number {
+            if(this.$style.lineHeight > 0)
+                return this.$style.lineHeight;
+            
+            if(!this.$fontProperties) return (+this.$style.fontSize) + this.$style.strokeThickness;  //rough value
+
+            return this.$fontProperties.fontSize + this.$style.strokeThickness + this.$style.leading;
+        }
+
+        public set lineHeight(lh:number) {
+            this.$style.lineHeight = lh;
+        }
 
         public get font(): string {
             return this.$font || UIConfig.defaultFont;
@@ -219,13 +232,12 @@ namespace fgui {
         }
 
         public get leading(): number {
-            return this.$leading;
+            return this.$style.leading;
         }
 
         public set leading(value: number) {
-            if (this.$leading != value) {
-                this.$leading = value;
-                this.$style.leading = this.$leading;
+            if (this.$style.leading != value) {
+                this.$style.leading = value;
                 this.render();
             }
         }
@@ -404,13 +416,14 @@ namespace fgui {
             this.$textField.style.wordWrap = wordWrap;
             this.$textField.style.breakWords = wordWrap;
             this.$textField.text = this.$text;         //trigger t.dirty = true
+            this.$fontProperties = PIXI.TextMetrics.measureFont(this.$style.toFontString());
             
             this.$textWidth = Math.ceil(this.$textField.textWidth);
             if (this.$textWidth > 0)
-                this.$textWidth += 4;   //margin gap
+                this.$textWidth += GTextField.GUTTER_X * 2;   //margin gap
             this.$textHeight = Math.ceil(this.$textField.textHeight);
             if (this.$textHeight > 0)
-                this.$textHeight += 4;  //margin gap
+                this.$textHeight += GTextField.GUTTER_Y * 2;  //margin gap
 
             let w = this.width, h = this.height;
             if(this.autoSize == AutoSizeType.Shrink)
@@ -793,10 +806,22 @@ namespace fgui {
             if(str)
                 this.font = str;
 
+            str = xml.attributes.vAlign;
+            if (str)
+                this.verticalAlign = ParseVertAlignType(str);
+
+            str = xml.attributes.leading;
+            if (str)
+                this.$style.leading = parseInt(str);
+
+            str = xml.attributes.letterSpacing;
+            if (str)
+                this.$style.letterSpacing = parseInt(str);
+
             str = xml.attributes.fontSize;
             if (str)
-                this.fontSize = parseInt(str);
-
+                this.$style.fontSize = parseInt(str);
+                
             str = xml.attributes.color;
             if (str)
                 this.color = utils.StringUtil.convertFromHtmlColor(str);
@@ -804,19 +829,7 @@ namespace fgui {
             str = xml.attributes.align;
             if (str)
                 this.align = ParseAlignType(str);
-
-            str = xml.attributes.vAlign;
-            if (str)
-                this.verticalAlign = ParseVertAlignType(str);
-
-            str = xml.attributes.leading;
-            if (str)
-                this.leading = parseInt(str);
-
-            str = xml.attributes.letterSpacing;
-            if (str)
-                this.letterSpacing = parseInt(str);
-
+                
             str = xml.attributes.autoSize;
             if (str) {
                 this.autoSize = ParseAutoSizeType(str);

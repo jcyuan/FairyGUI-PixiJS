@@ -5,7 +5,7 @@ namespace fgui {
         private htmlInput:HTMLInput;
 
         private $requestToShow:boolean = false;
-        private $requestToHide:boolean = false;
+        //private $requestToHide:boolean = false;
 
         private inputElement:HTMLInputElement | HTMLTextAreaElement = null;
         private inputDiv:HTMLDivElement = null;
@@ -35,17 +35,11 @@ namespace fgui {
             let scaleX = this.htmlInput.$scaleX;
             let scaleY = this.htmlInput.$scaleY;
 
+            if(!this.$textfield.multipleLine)
+                this.inputElement.style.top = (-this.$textfield.leading * scaleY) + "px";
+                
+            this.inputDiv.style.top = (y + 1) * scaleY + "px";
             this.inputDiv.style.left = x * scaleX + "px";
-            this.inputDiv.style.top = y * scaleY + "px";
-
-            if (this.$textfield.multipleLine && this.$textfield.height > this.$textfield.fontSize) {
-                this.inputDiv.style.top = (y * scaleY) + "px";
-                this.inputElement.style.top = (-this.$textfield.leading * .5 * scaleY) + "px";
-            }
-            else {
-                this.inputDiv.style.top = y * scaleY + "px";
-                this.inputElement.style.top = "0px";
-            }
             
             let node:GObject = this.$textfield;
             let cX = 1;
@@ -96,8 +90,8 @@ namespace fgui {
         
         /**@internal */
         $hide():void {
-            this.$requestToHide = true;
-            /*if (this.htmlInput && PIXI.utils.isMobile && iOS) {  //if os is ios need to clearInput once
+            /*this.$requestToHide = true;
+            if (this.htmlInput && PIXI.utils.isMobile && iOS) {  //if os is ios need to clearInput once
                 this.htmlInput.disconnect(this);
             }*/
         }
@@ -141,12 +135,12 @@ namespace fgui {
                 if (tf.height <= tf.fontSize) {
                     this.setElementStyle("height", tf.fontSize * this.$scaleY + "px");
                     this.setElementStyle("padding", "0px");
-                    this.setElementStyle("lineHeight", tf.fontSize * this.$scaleY + "px");
+                    this.setElementStyle("lineHeight", tf.lineHeight * this.$scaleY + "px");
                 }
                 else if(tf.height < textheight) {
                     this.setElementStyle("height", (tf.height) * this.$scaleY + "px");
                     this.setElementStyle("padding", "0px");
-                    this.setElementStyle("lineHeight", (tf.fontSize + tf.leading) * this.$scaleY + "px");
+                    this.setElementStyle("lineHeight", tf.lineHeight * this.$scaleY + "px");
                 }
                 else {
                     this.setElementStyle("height", (textheight + tf.leading) * this.$scaleY + "px");
@@ -156,7 +150,7 @@ namespace fgui {
                     let top = rap * valign;
                     let bottom = rap - top;
                     this.setElementStyle("padding", top + "px 0px " + bottom + "px 0px");
-                    this.setElementStyle("lineHeight", (tf.fontSize + tf.leading) * this.$scaleY + "px");
+                    this.setElementStyle("lineHeight", tf.lineHeight * this.$scaleY + "px");
                 }
             }
         }
@@ -257,7 +251,7 @@ namespace fgui {
                 if (textfield.multipleLine)
                     this.setAreaHeight();
                 else {
-                    this.setElementStyle("lineHeight", textfield.fontSize * this.$scaleY + "px");
+                    this.setElementStyle("lineHeight", textfield.lineHeight * this.$scaleY + "px");
                     if (textfield.height < textfield.fontSize) {
                         this.setElementStyle("height", textfield.fontSize * this.$scaleY + "px");
                         this.setElementStyle("padding", "0px 0px " + (textfield.fontSize * .5 * this.$scaleX) + "px 0px");
