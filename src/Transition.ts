@@ -240,7 +240,7 @@ namespace fgui {
                 if (item.target == null || item.completed)
                     return;
 
-                this.disposeTween(item, true);
+                this.disposeTween(item);
 
                 if (item.type == TransitionActionType.Transition) {
                     let trans: Transition = (item.target as GComponent).getTransition(item.value.s);
@@ -399,6 +399,7 @@ namespace fgui {
 
                 let startTime: number;
 
+                this.disposeTween(item);
                 if (item.tween) {
                     if (this.$reversed)
                         startTime = delay + this.$maxTime - item.time - item.duration;
@@ -407,7 +408,6 @@ namespace fgui {
                     if (startTime > 0) {
                         this.$totalTasks++;
                         item.completed = false;
-                        this.disposeTween(item);
                         item.tweener = createjs.Tween.get(item.value).wait(startTime * 1000).call(this.$delayCall, [item], this);
                     }
                     else
@@ -423,7 +423,6 @@ namespace fgui {
                     else {
                         this.$totalTasks++;
                         item.completed = false;
-                        this.disposeTween(item);
                         item.tweener = createjs.Tween.get(item.value).wait(startTime * 1000).call(this.$delayCall2, [item], this);
                     }
                 }
@@ -532,7 +531,7 @@ namespace fgui {
             
             item.tweener = createjs.Tween.get(item.value, {
                 onChange: utils.Binder.create(this.$tweenUpdate, this, item)
-            }, null, true).to(toProps, item.duration * 1000, item.easeType).call(completeHandler);
+            }).to(toProps, item.duration * 1000, item.easeType).call(completeHandler);
             
             if (item.hook != null)
                 item.hook.call(item.hookObj);
@@ -545,7 +544,7 @@ namespace fgui {
         }
 
         private $delayCall2(item: TransitionItem) {
-            this.disposeTween(item, true);
+            this.disposeTween(item);
             this.$totalTasks--;
             item.completed = true;
 
@@ -561,7 +560,7 @@ namespace fgui {
         }
 
         private $tweenComplete(event:any, item: TransitionItem) {
-            this.disposeTween(item, true);
+            this.disposeTween(item);
             this.$totalTasks--;
             item.completed = true;
             if (item.hook2 != null)
@@ -587,26 +586,24 @@ namespace fgui {
                 this.disposeTween(item);
                 item.tweener = createjs.Tween.get(item.value, {
                     onChange: utils.Binder.create(this.$tweenUpdate, this, item)
-                }, null, true).to(toProps, item.duration * 1000, item.easeType).call(this.$tweenRepeatComplete, [null, item], this);
+                }).to(toProps, item.duration * 1000, item.easeType).call(this.$tweenRepeatComplete, [null, item], this);
             }
             else
                 this.$tweenComplete(null, item);
         }
 
-        private disposeTween(item:TransitionItem, force:boolean = false):void {
+        private disposeTween(item:TransitionItem):void {
             if(!item) return;
-            if(force === true && item.tweener)
-            {
+            if(item.tweener) {
+                item.tweener.setPaused(true);
                 item.tweener.removeAllEventListeners();
                 createjs.Tween.removeTweens(item.value);
+                item.tweener = null;
             }
-            else if(item.tweener)
-                item.tweener.setPaused(true);
-            item.tweener = null;
         }
 
         private $playTransComplete(item: TransitionItem) {
-            this.disposeTween(item, true);
+            this.disposeTween(item);
             this.$totalTasks--;
             item.completed = true;
             this.checkAllComplete();
@@ -616,12 +613,12 @@ namespace fgui {
             if (this.$playing && this.$totalTasks == 0) {
                 if (this.$totalTimes < 0) {
                     //the reason we don't call 'internalPlay' immediately here is because of the onChange handler issue, the handler's been calling all the time even the tween is in waiting/complete status.
-                    GTimer.inst.callLater(this.internalPlay, this);
+                    GTimer.inst.callLater(this.internalPlay, this, 0);
                 }
                 else {
                     this.$totalTimes--;
                     if (this.$totalTimes > 0)
-                        GTimer.inst.callLater(this.internalPlay, this);
+                        GTimer.inst.callLater(this.internalPlay, this, 0);
                     else {
                         this.$playing = false;
                         this.$items.forEach(item => {
@@ -637,7 +634,9 @@ namespace fgui {
 								{
 									item.filterCreated = false;
 									item.target.filters = null;
-								}
+                                }
+                                
+                                this.disposeTween(item);
 							}
                         });
                         
