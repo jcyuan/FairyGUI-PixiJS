@@ -155,6 +155,12 @@ namespace fgui {
     
             Size = 24
         };
+
+        export const enum ListChildrenRenderOrder {
+            Ascent = 0,
+            Descent = 1,
+            Arch = 2
+        };
     
         export function ParseOverflowType(value: string): OverflowType {
             switch (value) {
@@ -352,6 +358,20 @@ namespace fgui {
                     return VertAlignType.Top;
             }
         }
+
+        export function ParseListChildrenRenderOrder(value:string):ListChildrenRenderOrder {
+			switch (value)
+			{
+				case "ascent":
+					return ListChildrenRenderOrder.Ascent;
+				case "descent":
+					return ListChildrenRenderOrder.Descent;
+				case "arch":
+					return ListChildrenRenderOrder.Arch;
+				default:
+					return ListChildrenRenderOrder.Ascent;
+			}
+		}
     
         type EaseTypeDictionary = {
             [key: string]: (t: number) => number
