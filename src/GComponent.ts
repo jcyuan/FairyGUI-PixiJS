@@ -224,7 +224,7 @@ namespace fgui {
                 return this.$setChildIndex(child, oldIndex, index);
         }
 
-        private $setChildIndex(child: GObject, oldIndex: number, index: number = 0): number {
+        protected $setChildIndex(child: GObject, oldIndex: number, index: number = 0): number {
             let cnt: number = this.$children.length;
             if (index > cnt)
                 index = cnt;
@@ -875,13 +875,17 @@ namespace fgui {
             this.$buildingDisplayList = false;
             this.$inProgressBuilding = false;
 
+            this.appendChildrenList();
+
+            this.setBoundsChangedFlag();
+            this.constructFromXML(xml);
+        }
+
+        protected appendChildrenList():void {
             this.$children.forEach(child => {
                 if (child.displayObject != null && child.finalVisible)
                     this.$container.addChild(child.displayObject);
             }, this);
-
-            this.setBoundsChangedFlag();
-            this.constructFromXML(xml);
         }
 
         protected constructFromXML(xml: utils.XmlNode): void {

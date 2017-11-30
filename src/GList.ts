@@ -30,7 +30,7 @@ namespace fgui {
         private $verticalAlign: VertAlignType;
         private $selectionController: controller.Controller;
 
-        private $lastSelectedIndex: number = 0;
+        //private $lastSelectedIndex: number = 0;
         private $pool: utils.GObjectRecycler;
 
         //virtual list support
@@ -46,6 +46,10 @@ namespace fgui {
         private $virtualItems: ItemInfo[];
         private $eventLocked: boolean;
 
+        //render sorting type
+        protected $apexIndex:number = 0;
+        private $childrenRenderOrder = ListChildrenRenderOrder.Ascent;
+
         public constructor() {
             super();
 
@@ -53,7 +57,7 @@ namespace fgui {
             this.$pool = new utils.GObjectRecycler();
             this.$layout = ListLayoutType.SingleColumn;
             this.$autoResizeItem = true;
-            this.$lastSelectedIndex = -1;
+            //this.$lastSelectedIndex = -1;
             this.$selectionMode = ListSelectionMode.Single;
             this.opaque = true;
             this.$align = AlignType.Left;
@@ -63,6 +67,75 @@ namespace fgui {
             this.$rootContainer.addChild(this.$container);
         }
 
+        public get childrenRenderOrder(): ListChildrenRenderOrder {
+            return this.$childrenRenderOrder;
+        }
+
+        public set childrenRenderOrder(value: ListChildrenRenderOrder) {
+            if (this.$childrenRenderOrder != value) {
+                this.$childrenRenderOrder = value;
+                this.appendChildrenList();
+            }
+        }
+
+        public get apexIndex(): number {
+            return this.$apexIndex;
+        }
+
+        public set apexIndex(value: number) {
+            if (this.$apexIndex != value) {
+                this.$apexIndex = value;
+
+                if (this.$childrenRenderOrder == ListChildrenRenderOrder.Arch)
+                    this.appendChildrenList();
+            }
+        }
+
+        /**@override */
+        protected appendChildrenList(): void {
+            var cnt: number = this.$children.length;
+            if (cnt == 0)
+                return;
+
+            let i: number;
+            let child: GObject;
+            switch (this.$childrenRenderOrder) {
+                case ListChildrenRenderOrder.Ascent:
+                    {
+                        for (i = 0; i < cnt; i++) {
+                            child = this.$children[i];
+                            if (child.displayObject != null && child.finalVisible)
+                                this.$container.addChild(child.displayObject);
+                        }
+                    }
+                    break;
+                case ListChildrenRenderOrder.Descent:
+                    {
+                        for (i = cnt - 1; i >= 0; i--) {
+                            child = this.$children[i];
+                            if (child.displayObject != null && child.finalVisible)
+                                this.$container.addChild(child.displayObject);
+                        }
+                    }
+                    break;
+
+                case ListChildrenRenderOrder.Arch:
+                    {
+                        for (i = 0; i < this.$apexIndex; i++) {
+                            child = this.$children[i];
+                            if (child.displayObject != null && child.finalVisible)
+                                this.$container.addChild(child.displayObject);
+                        }
+                        for (i = cnt - 1; i >= this.$apexIndex; i--) {
+                            child = this.$children[i];
+                            if (child.displayObject != null && child.finalVisible)
+                                this.$container.addChild(child.displayObject);
+                        }
+                    }
+                    break;
+            }
+        }
+        
         /**@override */
         public setXY(xv: number, yv: number): void {
             if (this.$x != xv || this.$y != yv) {
@@ -75,6 +148,106 @@ namespace fgui {
 
                 if (GObject.draggingObject == this && !GObject.sUpdatingWhileDragging)
                     this.localToGlobalRect(0, 0, this.width, this.height, GObject.sGlobalRect);
+            }
+        }
+
+        /**@override */
+        protected $setChildIndex(child: GObject, oldIndex: number, index: number = 0): number {
+            let cnt: number = this.$children.length;
+            if (index > cnt)
+                index = cnt;
+
+            if (oldIndex == index)
+                return oldIndex;
+
+            this.$children.splice(oldIndex, 1);
+            this.$children.splice(index, 0, child);
+
+            if (child.inContainer) {
+                let displayIndex: number = 0;
+                let g: GObject;
+                let i: number;
+
+                if (this.$childrenRenderOrder == ListChildrenRenderOrder.Ascent) {
+                    for (i = 0; i < index; i++) {
+                        g = this.$children[i];
+                        if (g.inContainer)
+                            displayIndex++;
+                    }
+                    if (displayIndex == this.$container.children.length)
+                        displayIndex--;
+                    this.$container.setChildIndex(child.displayObject, displayIndex);
+                }
+                else if (this.$childrenRenderOrder == ListChildrenRenderOrder.Descent) {
+                    for (i = cnt - 1; i > index; i--) {
+                        g = this.$children[i];
+                        if (g.inContainer)
+                            displayIndex++;
+                    }
+                    if (displayIndex == this.$container.children.length)
+                        displayIndex--;
+                    this.$container.setChildIndex(child.displayObject, displayIndex);
+                }
+                else
+                    fgui.GTimer.inst.callLater(this.appendChildrenList, this);
+
+                this.setBoundsChangedFlag();
+            }
+            return index;
+        }
+
+        /**@override */
+        public childStateChanged(child: GObject): void {
+            if (this.$buildingDisplayList)
+                return;
+
+            if (child instanceof GGroup) {
+                this.$children.forEach(g => {
+                    if (g.group == child)
+                        this.childStateChanged(g);
+                }, this);
+                return;
+            }
+
+            if (!child.displayObject)
+                return;
+
+            if (child.finalVisible) {
+                let i:number, g:GObject;
+                let cnt = this.$children.length;
+                if (!child.displayObject.parent) {
+                    let index: number = 0;
+                    if (this.$childrenRenderOrder == ListChildrenRenderOrder.Ascent) {
+                        for (let i = 0; i < cnt; i++) {
+                            g = this.$children[i];
+                            if (g == child)
+                                break;
+
+                            if (g.displayObject != null && g.displayObject.parent != null)
+                                index++;
+                        }
+                        this.$container.addChildAt(child.displayObject, index);
+                    }
+                    else if (this.$childrenRenderOrder == ListChildrenRenderOrder.Descent) {
+                        for (i = cnt - 1; i >= 0; i--) {
+                            g = this.$children[i];
+                            if (g == child)
+                                break;
+
+                            if (g.displayObject != null && g.displayObject.parent != null)
+                                index++;
+                        }
+                        this.$container.addChildAt(child.displayObject, index);
+                    }
+                    else {
+                        this.$container.addChild(child.displayObject);
+                        fgui.GTimer.inst.callLater(this.appendChildrenList, this);
+                    }
+                }
+            }
+            else {
+                if (child.displayObject.parent)
+                    this.$container.removeChild(child.displayObject);
             }
         }
 
@@ -272,9 +445,30 @@ namespace fgui {
         }
 
         public removeChildAt(index: number, dispose: boolean = false): GObject {
-            let child: GObject = super.removeChildAt(index, dispose);
-            child.removeClick(this.$clickItem, this);
-            return child;
+            if (index >= 0 && index < this.numChildren) {
+                let child: GObject = this.$children[index];
+                child.parent = null;
+
+                if (child.sortingOrder != 0)
+                    this.$sortingChildCount--;
+
+                this.$children.splice(index, 1);
+                if (child.inContainer) {
+                    this.$container.removeChild(child.displayObject);
+                    if (this.$childrenRenderOrder == ListChildrenRenderOrder.Arch)
+                    fgui.GTimer.inst.callLater(this.appendChildrenList, this);
+                }
+                
+                if (dispose === true)
+                    child.dispose();
+
+                this.setBoundsChangedFlag();
+
+                child.removeClick(this.$clickItem, this);
+                return child;
+            }
+            else
+                throw new Error("Invalid child index");
         }
 
         public removeChildToPoolAt(index: number = 0): void {
@@ -553,7 +747,7 @@ namespace fgui {
             if (!(item instanceof GButton) || this.$selectionMode == ListSelectionMode.None)
                 return;
 
-            let dontChangeLastIndex: boolean = false;
+            //let dontChangeLastIndex: boolean = false;
             let index: number = this.getChildIndex(item);
 
             if (this.$selectionMode == ListSelectionMode.Single) {
@@ -571,8 +765,8 @@ namespace fgui {
                     this.clearSelectionExcept(item);
             }
 
-            if (!dontChangeLastIndex)
-                this.$lastSelectedIndex = index;
+            //if (!dontChangeLastIndex)
+            //    this.$lastSelectedIndex = index;
 
             if (item.selected)
                 this.updateSelectionController(index);
@@ -1365,7 +1559,7 @@ namespace fgui {
             if (deltaSize != 0 || firstItemDeltaSize != 0)
                 this.$scrollPane.changeContentSizeOnScrolling(0, deltaSize, 0, firstItemDeltaSize);
 
-            if (curIndex > 0 && this.numChildren > 0 && this.$container.y < 0 && this.getChildAt(0).y > -this.$container.y) //最后一页没填满！
+            if (curIndex > 0 && this.numChildren > 0 && this.$container.y < 0 && this.getChildAt(0).y > -this.$container.y) //最后一页没填满
                 this.handleScroll1(false);
 
             GList.scrollEnterCounter--;
@@ -1508,7 +1702,7 @@ namespace fgui {
             if (deltaSize != 0 || firstItemDeltaSize != 0)
                 this.$scrollPane.changeContentSizeOnScrolling(deltaSize, 0, firstItemDeltaSize, 0);
 
-            if (curIndex > 0 && this.numChildren > 0 && this.$container.x < 0 && this.getChildAt(0).x > - this.$container.x)//最后一页没填满！
+            if (curIndex > 0 && this.numChildren > 0 && this.$container.x < 0 && this.getChildAt(0).x > - this.$container.x)//最后一页没填满
                 this.handleScroll2(false);
 
             GList.scrollEnterCounter--;
@@ -2099,6 +2293,16 @@ namespace fgui {
                 this.$autoResizeItem = str != "false";
             else
                 this.$autoResizeItem = str == "true";
+
+            str = xml.attributes.renderOrder;
+            if(str) {
+                this.$childrenRenderOrder = fgui.ParseListChildrenRenderOrder(str);
+                if(this.$childrenRenderOrder == ListChildrenRenderOrder.Arch) {
+                    str = xml.attributes.apex;
+                    if(str)
+                        this.$apexIndex = parseInt(str);
+                }
+            }
 
             let col: utils.XmlNode[] = xml.children;
             col.forEach(cxml => {
