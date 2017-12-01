@@ -119,7 +119,7 @@ namespace fgui {
                 delay: number
          * 2) just pass 1 object which implements TransitionPlaySetting (recommended)
          */
-        public playReverse(...args: any[]) {
+        public playReverse(...args: any[]):void {
             if (args.length && typeof (args[0]) == "object") {
                 let obj = args[0] as TransitionPlaySetting;
                 this.$play(obj.onComplete, obj.onCompleteObj, obj.onCompleteParam, obj.times || 1, obj.delay || 0, true);
