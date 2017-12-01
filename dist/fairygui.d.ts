@@ -2151,11 +2151,6 @@ declare namespace fgui {
         FocusOut = "__textFocusOut",
     }
 }
-declare namespace fgui {
-    const enum TransitionEvent {
-        Complete = "__transComplete",
-    }
-}
 declare namespace PIXI.extras {
     class InteractionManager extends PIXI.interaction.InteractionManager {
         stageRotation: number;
