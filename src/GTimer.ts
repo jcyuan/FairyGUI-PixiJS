@@ -77,7 +77,6 @@ namespace fgui {
         }
 
         public advance(): void {
-
             this.$enumIdx = 0;
             this.$enumCount = this.$items.length;
 
@@ -109,11 +108,19 @@ namespace fgui {
             }
         }
 
+        public tickTween():void {
+            createjs.Tween.tick(this.$ticker.elapsedMS, !this.$ticker.started);
+        }
+
         public setTicker(ticker:PIXI.ticker.Ticker):void {
-            if(this.$ticker)
+            if(this.$ticker) {
                 this.$ticker.remove(this.advance, this, PIXI.UPDATE_PRIORITY.NORMAL);
+                this.$ticker.remove(this.tickTween, this, PIXI.UPDATE_PRIORITY.HIGH);
+            }
             this.$ticker = ticker;
             this.$ticker.add(this.advance, this, PIXI.UPDATE_PRIORITY.NORMAL);
+            this.$ticker.add(this.tickTween, this, PIXI.UPDATE_PRIORITY.HIGH);
+
             if(!this.$ticker.started)
                 this.$ticker.start();
         }

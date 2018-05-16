@@ -1,3 +1,4 @@
+/// <reference types="tweenjs" />
 declare namespace fgui {
     class InteractiveEvents {
         static Down: string;
@@ -1089,7 +1090,7 @@ declare namespace fgui {
     }
 }
 declare namespace fgui {
-    class GRootStatus {
+    class GRootPointerStatus {
         touchDown: boolean;
         mouseX: number;
         mouseY: number;
@@ -1108,10 +1109,29 @@ declare namespace fgui {
         private $uid;
         private static $inst;
         private static $retStatus;
+        /**
+         * the singleton instance of the GRoot object
+         */
         static readonly inst: GRoot;
-        static readonly statusData: GRootStatus;
+        /**
+         * @deprecated will be removed later, please use pointerStatusData instead
+         */
+        static readonly statusData: GRootPointerStatus;
+        /**
+         * the current mouse/pointer data
+         */
+        static readonly pointerStatusData: GRootPointerStatus;
+        /**
+         * get the objects which are placed underneath the given stage coordinate
+         * @param globalX the stage X
+         * @param globalY the stage Y
+         */
         getObjectUnderPoint(globalX: number, globalY: number): GObject;
-        /**The main entry */
+        /**
+         * the main entry to lauch the UI root, e.g.: GRoot.inst.attachTo(app, options)
+         * @param app your PIXI.Application instance to be used in this GRoot instance
+         * @param stageOptions stage rotation / resize options
+         */
         attachTo(app: PIXI.Application, stageOptions?: UIStageOptions): void;
         constructor();
         readonly uniqueID: number;
@@ -1258,6 +1278,7 @@ declare namespace fgui {
         exists(callback: (...args: any[]) => void, thisObj: any): boolean;
         remove(callback: (...args: any[]) => void, thisObj: any): void;
         advance(): void;
+        tickTween(): void;
         setTicker(ticker: PIXI.ticker.Ticker): void;
     }
 }
@@ -1374,7 +1395,6 @@ declare namespace fgui {
         private $contentHeight;
         private $scrollType;
         private $scrollSpeed;
-        private $mouseWheelSpeed;
         private $scrollBarMargin;
         private $bouncebackEffect;
         private $touchEffect;
@@ -1384,7 +1404,6 @@ declare namespace fgui {
         private $displayOnLeft;
         private $snapToItem;
         private $displayOnDemand;
-        private $mouseWheelEnabled;
         private $pageMode;
         private $pageSizeH;
         private $pageSizeV;
@@ -1767,6 +1786,7 @@ declare namespace fgui {
         ttf: boolean;
         glyphs: GlyphDictionary;
         resizable: boolean;
+        colorable: boolean;
         constructor();
     }
 }

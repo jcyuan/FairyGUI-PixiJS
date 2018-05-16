@@ -698,6 +698,7 @@ namespace fgui {
             let size: number = 0;
             let xadvance: number = 0;
             let resizable: boolean = false;
+            let colorable: boolean = false;
             let atlasOffsetX: number = 0, atlasOffsetY: number = 0;
             let charImg: PackageItem;
             let mainTexture: PIXI.Texture;
@@ -774,6 +775,7 @@ namespace fgui {
                         if (kv.size)
                             size = parseInt(kv.size);
                         resizable = kv.resizable == "true";
+                        colorable = kv.colored == "true";
                         if (ttf) {
                             let cfg: AtlasConfig = this.$atlasConfigs[item.id];
                             if (cfg != null) {
@@ -804,6 +806,7 @@ namespace fgui {
             font.ttf = ttf;
             font.size = size;
             font.resizable = resizable;
+            font.colorable = colorable;
             item.bitmapFont = font;
         }
     }

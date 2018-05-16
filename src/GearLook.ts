@@ -46,12 +46,10 @@ namespace fgui {
                 this.$owner.$gearLocked = false;
 
                 if (this.$tweener) {
-                    if (this.$tweenTarget.alpha != gv.alpha || this.$tweenTarget.rotation != gv.rotation) {
-                        this.$tweener.tick(100000000);  //set to end
-                        this.$tweener = null;
-                    }
-                    else
+                    if (this.$tweenTarget.alpha === gv.alpha && this.$tweenTarget.rotation === gv.rotation)
                         return;
+                    this.$tweener.gotoAndStop(this.$tweener.duration);  //set to end
+                    this.$tweener = null;
                 }
                 
                 let a: boolean = gv.alpha != this.$owner.alpha;

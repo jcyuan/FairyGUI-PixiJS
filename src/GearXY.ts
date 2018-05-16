@@ -40,12 +40,10 @@ namespace fgui {
 
             if (this.$tween && !UIPackage.$constructingObjects && !GearBase.disableAllTweenEffect) {
                 if (this.$tweener) {
-                    if (this.$tweenTarget.x != pt.x || this.$tweenTarget.y != pt.y) {
-                        this.$tweener.tick(100000000);  //set to end
-                        this.$tweener = null;
-                    }
-                    else
+                    if (this.$tweenTarget.x === pt.x && this.$tweenTarget.y === pt.y)
                         return;
+                    this.$tweener.gotoAndStop(this.$tweener.duration);  //set to end
+                    this.$tweener = null;
                 }
                 if (this.$owner.x != pt.x || this.$owner.y != pt.y) {
                     this.$owner.hasGearController(0, this.$controller)

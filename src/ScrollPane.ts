@@ -13,7 +13,7 @@ namespace fgui {
 
         private $scrollType: number = 0;
         private $scrollSpeed: number = 0;
-        private $mouseWheelSpeed: number = 0;
+        //private $mouseWheelSpeed: number = 0;
         private $scrollBarMargin: utils.Margin;
         private $bouncebackEffect: boolean;
         private $touchEffect: boolean;
@@ -24,7 +24,7 @@ namespace fgui {
         private $displayOnLeft: boolean;
         private $snapToItem: boolean;
         private $displayOnDemand: boolean;
-        private $mouseWheelEnabled: boolean;
+        //private $mouseWheelEnabled: boolean;
         private $pageMode: boolean;
         private $pageSizeH: number;
         private $pageSizeV: number;
@@ -99,7 +99,7 @@ namespace fgui {
             this.$bouncebackEffect = UIConfig.defaultScrollBounceEffect;
             this.$touchEffect = UIConfig.defaultScrollTouchEffect;
             this.$scrollSpeed = UIConfig.defaultScrollSpeed;
-            this.$mouseWheelSpeed = this.$scrollSpeed * 2;
+            //this.$mouseWheelSpeed = this.$scrollSpeed * 2;
             this.$displayOnLeft = (flags & ScrollPaneFlags.DisplayOnLeft) != 0;
             this.$snapToItem = (flags & ScrollPaneFlags.SnapToItem) != 0;
             this.$displayOnDemand = (flags & ScrollPaneFlags.DisplayOnDemand) != 0;
@@ -128,7 +128,7 @@ namespace fgui {
             this.$yOverlap = 0;
             this.$aniFlag = 0;
             this.$scrollBarVisible = true;
-            this.$mouseWheelEnabled = false;
+            //this.$mouseWheelEnabled = false;
             this.$holdAreaPoint = new PIXI.Point();
 
             if (scrollBarDisplay == ScrollBarDisplayType.Default)
@@ -210,7 +210,7 @@ namespace fgui {
             this.$scrollSpeed = this.scrollSpeed;
             if (this.$scrollSpeed == 0)
                 this.$scrollSpeed = UIConfig.defaultScrollSpeed;
-            this.$mouseWheelSpeed = this.$scrollSpeed * 2;
+            //this.$mouseWheelSpeed = this.$scrollSpeed * 2;
         }
 
         public get scrollSpeed(): number {
@@ -728,14 +728,14 @@ namespace fgui {
 
         private killTween(): void {
             if (this.$tweening == 1) {
-                this.$tweener.setPaused(true);
+                this.$tweener.paused = true;
                 this.$tweening = 0;
                 this.$tweener = null;
 
                 this.syncScrollBar(true);
             }
             else if (this.$tweening == 2) {
-                this.$tweener.setPaused(true);
+                this.$tweener.paused = true;
                 this.$tweener = null;
                 this.$tweening = 0;
 

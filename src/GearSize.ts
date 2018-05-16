@@ -48,7 +48,7 @@ namespace fgui {
                 if (this.$tweener) {
                     if (this.$tweenTarget.width != gv.width || this.$tweenTarget.height != gv.height
                         || this.$tweenTarget.scaleX != gv.scaleX || this.$tweenTarget.scaleY != gv.scaleY) {
-                        this.$tweener.tick(100000000);  //set to end
+                        this.$tweener.gotoAndStop(this.$tweener.duration);  //set to end
                         this.$tweener = null;
                     }
                     else

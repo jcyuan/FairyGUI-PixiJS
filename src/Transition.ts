@@ -595,7 +595,7 @@ namespace fgui {
         private disposeTween(item:TransitionItem):void {
             if(!item) return;
             if(item.tweener) {
-                item.tweener.setPaused(true);
+                item.tweener.paused = true;
                 item.tweener.removeAllEventListeners();
                 createjs.Tween.removeTweens(item.value);
                 item.tweener = null;

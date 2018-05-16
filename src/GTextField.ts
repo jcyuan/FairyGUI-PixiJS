@@ -692,7 +692,7 @@ namespace fgui {
                         bm.y = line.y + charIndent + Math.ceil(glyph.offsetY * fontScale);
                         bm.texture = glyph.texture;
                         bm.scale.set(fontScale, fontScale);
-                        bm.tint = this.$color;
+                        bm.tint = this.$bitmapFont.colorable === true ? this.$color : 0xFFFFFF;
                         this.$btContainer.addChild(bm);
 
                         charX += letterSpacing + Math.ceil(glyph.advance * fontScale);

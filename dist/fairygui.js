@@ -3428,12 +3428,10 @@ var fgui;
                 this.$owner.grayed = gv.grayed;
                 this.$owner.$gearLocked = false;
                 if (this.$tweener) {
-                    if (this.$tweenTarget.alpha != gv.alpha || this.$tweenTarget.rotation != gv.rotation) {
-                        this.$tweener.tick(100000000); //set to end
-                        this.$tweener = null;
-                    }
-                    else
+                    if (this.$tweenTarget.alpha === gv.alpha && this.$tweenTarget.rotation === gv.rotation)
                         return;
+                    this.$tweener.gotoAndStop(this.$tweener.duration); //set to end
+                    this.$tweener = null;
                 }
                 var a_1 = gv.alpha != this.$owner.alpha;
                 var b_1 = gv.rotation != this.$owner.rotation;
@@ -3542,7 +3540,7 @@ var fgui;
                 if (this.$tweener) {
                     if (this.$tweenTarget.width != gv.width || this.$tweenTarget.height != gv.height
                         || this.$tweenTarget.scaleX != gv.scaleX || this.$tweenTarget.scaleY != gv.scaleY) {
-                        this.$tweener.tick(100000000); //set to end
+                        this.$tweener.gotoAndStop(this.$tweener.duration); //set to end
                         this.$tweener = null;
                     }
                     else
@@ -3700,12 +3698,10 @@ var fgui;
                 pt = this.$default;
             if (this.$tween && !fgui.UIPackage.$constructingObjects && !fgui.GearBase.disableAllTweenEffect) {
                 if (this.$tweener) {
-                    if (this.$tweenTarget.x != pt.x || this.$tweenTarget.y != pt.y) {
-                        this.$tweener.tick(100000000); //set to end
-                        this.$tweener = null;
-                    }
-                    else
+                    if (this.$tweenTarget.x === pt.x && this.$tweenTarget.y === pt.y)
                         return;
+                    this.$tweener.gotoAndStop(this.$tweener.duration); //set to end
+                    this.$tweener = null;
                 }
                 if (this.$owner.x != pt.x || this.$owner.y != pt.y) {
                     this.$owner.hasGearController(0, this.$controller);
@@ -7033,7 +7029,7 @@ var fgui;
             },
             set: function (value) {
                 if (this.$tweener != null) {
-                    this.$tweener.setPaused(true);
+                    this.$tweener.paused = true;
                     this.$tweener = null;
                 }
                 if (this.$value != value) {
@@ -7047,7 +7043,7 @@ var fgui;
         GProgressBar.prototype.tweenValue = function (value, duration) {
             if (this.$value != value) {
                 if (this.$tweener)
-                    this.$tweener.setPaused(true);
+                    this.$tweener.paused = true;
                 this.$tweenValue = this.$value;
                 this.$value = value;
                 this.$tweener = createjs.Tween.get(this, { onChange: fgui.utils.Binder.create(this.onUpdateTween, this) })
@@ -7142,7 +7138,7 @@ var fgui;
         };
         GProgressBar.prototype.dispose = function () {
             if (this.$tweener) {
-                this.$tweener.setPaused(true);
+                this.$tweener.paused = true;
                 this.$tweener.removeAllEventListeners();
             }
             createjs.Tween.removeTweens(this);
@@ -7817,7 +7813,7 @@ var fgui;
                         bm.y = line.y + charIndent + Math.ceil(glyph.offsetY * fontScale);
                         bm.texture = glyph.texture;
                         bm.scale.set(fontScale, fontScale);
-                        bm.tint = _this.$color;
+                        bm.tint = _this.$bitmapFont.colorable === true ? _this.$color : 0xFFFFFF;
                         _this.$btContainer.addChild(bm);
                         charX += letterSpacing + Math.ceil(glyph.advance * fontScale);
                     }
@@ -8040,15 +8036,15 @@ var fgui;
 })(fgui || (fgui = {}));
 var fgui;
 (function (fgui) {
-    var GRootStatus = (function () {
-        function GRootStatus() {
+    var GRootPointerStatus = (function () {
+        function GRootPointerStatus() {
             this.touchDown = false;
             this.mouseX = 0;
             this.mouseY = 0;
         }
-        return GRootStatus;
+        return GRootPointerStatus;
     }());
-    fgui.GRootStatus = GRootStatus;
+    fgui.GRootPointerStatus = GRootPointerStatus;
     var GRoot = (function (_super) {
         __extends(GRoot, _super);
         function GRoot() {
@@ -8062,6 +8058,9 @@ var fgui;
             return _this;
         }
         Object.defineProperty(GRoot, "inst", {
+            /**
+             * the singleton instance of the GRoot object
+             */
             get: function () {
                 if (GRoot.$inst == null)
                     new GRoot();
@@ -8071,20 +8070,41 @@ var fgui;
             configurable: true
         });
         Object.defineProperty(GRoot, "statusData", {
+            /**
+             * @deprecated will be removed later, please use pointerStatusData instead
+             */
             get: function () {
                 return GRoot.$retStatus;
             },
             enumerable: true,
             configurable: true
         });
+        Object.defineProperty(GRoot, "pointerStatusData", {
+            /**
+             * the current mouse/pointer data
+             */
+            get: function () {
+                return GRoot.$retStatus;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         * get the objects which are placed underneath the given stage coordinate
+         * @param globalX the stage X
+         * @param globalY the stage Y
+         */
         GRoot.prototype.getObjectUnderPoint = function (globalX, globalY) {
             var ret = this.$uiStage.applicationContext.renderer.plugins.interaction.hitTest(GRoot.sHelperPoint, this.nativeStage);
             return fgui.GObject.castFromNativeObject(ret);
         };
-        /**The main entry */
+        /**
+         * the main entry to lauch the UI root, e.g.: GRoot.inst.attachTo(app, options)
+         * @param app your PIXI.Application instance to be used in this GRoot instance
+         * @param stageOptions stage rotation / resize options
+         */
         GRoot.prototype.attachTo = function (app, stageOptions) {
-            var cjs = createjs;
-            cjs.Ticker.timingMode = cjs.Ticker.RAF; //force or just let user to decide?
+            createjs.Ticker = null; //no need this one
             fgui.GTimer.inst.setTicker(app.ticker);
             if (this.$uiStage) {
                 this.$uiStage.off("__sizeChanged" /* SIZE_CHANGED */, this.$winResize, this);
@@ -8470,7 +8490,7 @@ var fgui;
             this.setSize(stage.stageWidth, stage.stageHeight);
         };
         GRoot.uniqueID = 0;
-        GRoot.$retStatus = new GRootStatus();
+        GRoot.$retStatus = new GRootPointerStatus();
         return GRoot;
     }(fgui.GComponent));
     fgui.GRoot = GRoot;
@@ -9068,11 +9088,17 @@ var fgui;
                 }
             }
         };
+        GTimer.prototype.tickTween = function () {
+            createjs.Tween.tick(this.$ticker.elapsedMS, !this.$ticker.started);
+        };
         GTimer.prototype.setTicker = function (ticker) {
-            if (this.$ticker)
+            if (this.$ticker) {
                 this.$ticker.remove(this.advance, this, PIXI.UPDATE_PRIORITY.NORMAL);
+                this.$ticker.remove(this.tickTween, this, PIXI.UPDATE_PRIORITY.HIGH);
+            }
             this.$ticker = ticker;
             this.$ticker.add(this.advance, this, PIXI.UPDATE_PRIORITY.NORMAL);
+            this.$ticker.add(this.tickTween, this, PIXI.UPDATE_PRIORITY.HIGH);
             if (!this.$ticker.started)
                 this.$ticker.start();
         };
@@ -9919,7 +9945,6 @@ var fgui;
             _this.$contentHeight = 0;
             _this.$scrollType = 0;
             _this.$scrollSpeed = 0;
-            _this.$mouseWheelSpeed = 0;
             _this.$onStage = false;
             if (ScrollPane.$easeTypeFunc == null)
                 ScrollPane.$easeTypeFunc = fgui.ParseEaseType("cubeOut");
@@ -9936,7 +9961,7 @@ var fgui;
             _this.$bouncebackEffect = fgui.UIConfig.defaultScrollBounceEffect;
             _this.$touchEffect = fgui.UIConfig.defaultScrollTouchEffect;
             _this.$scrollSpeed = fgui.UIConfig.defaultScrollSpeed;
-            _this.$mouseWheelSpeed = _this.$scrollSpeed * 2;
+            //this.$mouseWheelSpeed = this.$scrollSpeed * 2;
             _this.$displayOnLeft = (flags & 1 /* DisplayOnLeft */) != 0;
             _this.$snapToItem = (flags & 2 /* SnapToItem */) != 0;
             _this.$displayOnDemand = (flags & 4 /* DisplayOnDemand */) != 0;
@@ -9964,7 +9989,7 @@ var fgui;
             _this.$yOverlap = 0;
             _this.$aniFlag = 0;
             _this.$scrollBarVisible = true;
-            _this.$mouseWheelEnabled = false;
+            //this.$mouseWheelEnabled = false;
             _this.$holdAreaPoint = new PIXI.Point();
             if (scrollBarDisplay == 0 /* Default */)
                 scrollBarDisplay = fgui.UIConfig.defaultScrollBarDisplay;
@@ -10049,7 +10074,7 @@ var fgui;
                 this.$scrollSpeed = this.scrollSpeed;
                 if (this.$scrollSpeed == 0)
                     this.$scrollSpeed = fgui.UIConfig.defaultScrollSpeed;
-                this.$mouseWheelSpeed = this.$scrollSpeed * 2;
+                //this.$mouseWheelSpeed = this.$scrollSpeed * 2;
             },
             enumerable: true,
             configurable: true
@@ -10557,13 +10582,13 @@ var fgui;
         };
         ScrollPane.prototype.killTween = function () {
             if (this.$tweening == 1) {
-                this.$tweener.setPaused(true);
+                this.$tweener.paused = true;
                 this.$tweening = 0;
                 this.$tweener = null;
                 this.syncScrollBar(true);
             }
             else if (this.$tweening == 2) {
-                this.$tweener.setPaused(true);
+                this.$tweener.paused = true;
                 this.$tweener = null;
                 this.$tweening = 0;
                 this.validateHolderPos();
@@ -11594,7 +11619,7 @@ var fgui;
             if (!item)
                 return;
             if (item.tweener) {
-                item.tweener.setPaused(true);
+                item.tweener.paused = true;
                 item.tweener.removeAllEventListeners();
                 createjs.Tween.removeTweens(item.value);
                 item.tweener = null;
@@ -14202,73 +14227,91 @@ var PIXI;
                 if (!PIXI.extras.Text.__init) {
                     PIXI.extras.Text.__init = true;
                     //override
-                    PIXI.TextMetrics.wordWrap = function (text, style, canvas) {
-                        if (!canvas)
-                            canvas = PIXI.TextMetrics["_canvas"];
+                    PIXI.TextMetrics.wordWrap = function (text, style) {
+                        var canvas = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : PIXI.TextMetrics["_canvas"];
                         var context = canvas.getContext('2d');
-                        // Greedy wrapping algorithm that will wrap words as the line grows longer
-                        // than its horizontal bounds.
-                        var result = '';
-                        var firstChar = text.charAt(0);
-                        var lines = text.split('\n');
-                        var wordWrapWidth = style.wordWrapWidth;
-                        var characterCache = {};
-                        for (var i = 0; i < lines.length; i++) {
-                            var spaceLeft = wordWrapWidth;
-                            var words = lines[i].split(' ');
-                            for (var j = 0; j < words.length; j++) {
-                                var wordWidth = context.measureText(words[j]).width;
-                                if (style.breakWords && wordWidth > wordWrapWidth) {
-                                    // Word should be split in the middle
-                                    var characters = words[j].split('');
-                                    for (var c = 0; c < characters.length; c++) {
-                                        var character = characters[c];
-                                        var nextChar = characters[c + 1];
+                        var line = '';
+                        var width = 0;
+                        var lines = '';
+                        var cache = {};
+                        var ls = style.letterSpacing;
+                        // ideally there is letterSpacing after every char except the last one
+                        // t_h_i_s_' '_i_s_' '_a_n_' '_e_x_a_m_p_l_e_' '_!
+                        // so for convenience the above needs to be compared to width + 1 extra space
+                        // t_h_i_s_' '_i_s_' '_a_n_' '_e_x_a_m_p_l_e_' '_!_
+                        // ________________________________________________
+                        // And then the final space is simply no appended to each line
+                        var wordWrapWidth = style.wordWrapWidth + style.letterSpacing;
+                        // get the width of a space and add it to cache
+                        var spaceWidth = PIXI.TextMetrics.getFromCache(' ', ls, cache, context);
+                        // break text into words
+                        var words = text.split(' ');
+                        for (var i = 0; i < words.length; i++) {
+                            var word = words[i];
+                            // get word width from cache if possible
+                            var wordWidth = PIXI.TextMetrics.getFromCache(word, ls, cache, context);
+                            // word is longer than desired bounds
+                            if (wordWidth > wordWrapWidth) {
+                                // break large word over multiple lines
+                                if (style.breakWords) {
+                                    // add a space to the start of the word unless its at the beginning of the line
+                                    var tmpWord = line.length > 0 ? ' ' + word : word;
+                                    // break word into characters
+                                    var characters = tmpWord.split('');
+                                    // loop the characters
+                                    for (var j = 0; j < characters.length; j++) {
+                                        var character = characters[j];
+                                        var nextChar = characters[j + 1];
                                         var isEmoji = Text.isEmojiChar(character.charCodeAt(0), nextChar ? nextChar.charCodeAt(0) : 0);
-                                        if (isEmoji > 1) {
-                                            c++;
+                                        if (isEmoji >= 1) {
+                                            j++;
                                             character += nextChar; //combine into 1 emoji
                                         }
-                                        var characterWidth = characterCache[character];
-                                        if (characterWidth === undefined) {
-                                            characterWidth = context.measureText(character).width;
-                                            characterCache[character] = characterWidth;
+                                        var characterWidth = PIXI.TextMetrics.getFromCache(character, ls, cache, context);
+                                        if (characterWidth + width > wordWrapWidth) {
+                                            lines += PIXI.TextMetrics.addLine(line);
+                                            line = '';
+                                            width = 0;
                                         }
-                                        if (characterWidth > spaceLeft) {
-                                            result += "\n" + character;
-                                            spaceLeft = wordWrapWidth - characterWidth;
-                                        }
-                                        else {
-                                            if (c === 0 && (j > 0 || firstChar == ' ')) {
-                                                result += ' ';
-                                            }
-                                            result += character;
-                                            spaceLeft -= characterWidth;
-                                        }
+                                        line += character;
+                                        width += characterWidth;
                                     }
                                 }
                                 else {
-                                    var wordWidthWithSpace = wordWidth + context.measureText(' ').width;
-                                    if (j === 0 || wordWidthWithSpace > spaceLeft) {
-                                        // Skip printing the newline if it's the first word of the line that is
-                                        // greater than the word wrap width.
-                                        if (j > 0) {
-                                            result += '\n';
-                                        }
-                                        result += words[j];
-                                        spaceLeft = wordWrapWidth - wordWidth;
+                                    // if there are words in this line already
+                                    // finish that line and start a new one
+                                    if (line.length > 0) {
+                                        lines += PIXI.TextMetrics.addLine(line);
+                                        line = '';
+                                        width = 0;
                                     }
-                                    else {
-                                        spaceLeft -= wordWidthWithSpace;
-                                        result += " " + words[j];
-                                    }
+                                    // give it its own line
+                                    lines += PIXI.TextMetrics.addLine(word);
+                                    line = '';
+                                    width = 0;
                                 }
                             }
-                            if (i < lines.length - 1) {
-                                result += '\n';
+                            else {
+                                // word won't fit, start a new line
+                                if (wordWidth + width > wordWrapWidth) {
+                                    lines += PIXI.TextMetrics.addLine(line);
+                                    line = '';
+                                    width = 0;
+                                }
+                                // add the word to the current line
+                                if (line.length > 0) {
+                                    // add a space if it is not the beginning
+                                    line += ' ' + word;
+                                }
+                                else {
+                                    // add without a space if it is the beginning
+                                    line += word;
+                                }
+                                width += wordWidth + spaceWidth;
                             }
                         }
-                        return result;
+                        lines += PIXI.TextMetrics.addLine(line, false);
+                        return lines;
                     };
                 }
                 return _this;
@@ -15153,6 +15196,7 @@ var fgui;
             var size = 0;
             var xadvance = 0;
             var resizable = false;
+            var colorable = false;
             var atlasOffsetX = 0, atlasOffsetY = 0;
             var charImg;
             var mainTexture;
@@ -15222,6 +15266,7 @@ var fgui;
                         if (kv.size)
                             size = parseInt(kv.size);
                         resizable = kv.resizable == "true";
+                        colorable = kv.colored == "true";
                         if (ttf) {
                             var cfg = _this.$atlasConfigs[item.id];
                             if (cfg != null) {
@@ -15250,6 +15295,7 @@ var fgui;
             font.ttf = ttf;
             font.size = size;
             font.resizable = resizable;
+            font.colorable = colorable;
             item.bitmapFont = font;
         };
         /**@internal */

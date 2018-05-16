@@ -1,6 +1,6 @@
 namespace fgui {
 
-    export class GRootStatus {
+    export class GRootPointerStatus {
         public touchDown: boolean = false;
         public mouseX: number = 0;
         public mouseY: number = 0;
@@ -24,30 +24,49 @@ namespace fgui {
 
         private static $inst: GRoot;
 
-        private static $retStatus = new GRootStatus();
+        private static $retStatus = new GRootPointerStatus();
 
+        /**
+         * the singleton instance of the GRoot object
+         */
         public static get inst(): GRoot {
             if (GRoot.$inst == null)
                 new GRoot();
             return GRoot.$inst;
         }
 
-        public static get statusData(): GRootStatus {
+        /**
+         * @deprecated will be removed later, please use pointerStatusData instead
+         */
+        public static get statusData(): GRootPointerStatus {
             return GRoot.$retStatus;
         }
 
-        public getObjectUnderPoint(globalX:number, globalY:number):GObject
-        {
+        /**
+         * the current mouse/pointer data
+         */
+        public static get pointerStatusData(): GRootPointerStatus {
+            return GRoot.$retStatus;
+        }
+
+        /**
+         * get the objects which are placed underneath the given stage coordinate
+         * @param globalX the stage X
+         * @param globalY the stage Y
+         */
+        public getObjectUnderPoint(globalX:number, globalY:number):GObject {
             let ret: PIXI.DisplayObject = this.$uiStage.applicationContext.renderer.plugins.interaction.hitTest(GRoot.sHelperPoint, this.nativeStage);
             return GObject.castFromNativeObject(ret);
         }
 
-        /**The main entry */
+        /**
+         * the main entry to lauch the UI root, e.g.: GRoot.inst.attachTo(app, options)
+         * @param app your PIXI.Application instance to be used in this GRoot instance
+         * @param stageOptions stage rotation / resize options
+         */
         public attachTo(app: PIXI.Application, stageOptions?: UIStageOptions): void {
 
-            let cjs:any = createjs;
-            cjs.Ticker.timingMode = cjs.Ticker.RAF;   //force or just let user to decide?
-
+            createjs.Ticker = null;   //no need this one
             GTimer.inst.setTicker(app.ticker);
             
             if (this.$uiStage) {

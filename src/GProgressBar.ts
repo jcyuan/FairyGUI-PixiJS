@@ -58,7 +58,7 @@ namespace fgui {
 
         public set value(value: number) {
             if (this.$tweener != null) {
-                this.$tweener.setPaused(true);
+                this.$tweener.paused = true;
                 this.$tweener = null;
             }
 
@@ -71,7 +71,7 @@ namespace fgui {
         public tweenValue(value: number, duration: number): createjs.Tween {
             if (this.$value != value) {
                 if (this.$tweener)
-                    this.$tweener.setPaused(true);
+                    this.$tweener.paused = true;
 
                 this.$tweenValue = this.$value;
                 this.$value = value;
@@ -185,7 +185,7 @@ namespace fgui {
 
         public dispose(): void {
             if (this.$tweener) {
-                this.$tweener.setPaused(true);
+                this.$tweener.paused = true;
                 this.$tweener.removeAllEventListeners();
             }
             createjs.Tween.removeTweens(this);
