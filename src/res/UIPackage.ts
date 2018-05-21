@@ -283,14 +283,16 @@ namespace fgui {
                     case PackageItemType.Image: {
                         str = cxml.attributes.scale;
                         if (str == "9grid") {
-                            pi.scale9Grid = new PIXI.Rectangle();
                             str = cxml.attributes.scale9grid;
                             if (str) {
                                 let arr = str.split(UIPackage.sep0);
-                                pi.scale9Grid.x = parseInt(arr[0]);
-                                pi.scale9Grid.y = parseInt(arr[1]);
-                                pi.scale9Grid.width = parseInt(arr[2]);
-                                pi.scale9Grid.height = parseInt(arr[3]);
+                                let rect = new PIXI.Rectangle(
+                                    parseInt(arr[0]),
+                                    parseInt(arr[1]),
+                                    parseInt(arr[2]),
+                                    parseInt(arr[3])
+                                );
+                                pi.scale9Grid = rect;
 
                                 str = cxml.attributes.gridTile;
                                 if (str)

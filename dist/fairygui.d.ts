@@ -1,4 +1,3 @@
-/// <reference types="tweenjs" />
 declare namespace fgui {
     class InteractiveEvents {
         static Down: string;
@@ -1992,13 +1991,18 @@ declare namespace fgui {
 declare namespace fgui {
     class UIImage extends PIXI.Container implements IUIObject {
         protected $disp: PIXI.extras.TilingSprite | PIXI.mesh.NineSlicePlane | PIXI.Sprite;
-        protected $scale9Rect: PIXI.Rectangle;
         UIOwner: GObject;
         constructor(owner?: GObject);
         tint: number;
         height: number;
         width: number;
         texture: PIXI.Texture;
+        /**
+         * rect = x,y,w,h = l,t,r,b
+         */
+        /**
+         * rect = x,y,w,h = l,t,r,b
+         */
         scale9Grid: PIXI.Rectangle;
         tiledSlices: number;
         destroy(options?: boolean | PIXI.DestroyOptions): void;
@@ -2178,6 +2182,13 @@ declare namespace PIXI.extras {
         stageScaleY: number;
         constructor(renderer: CanvasRenderer | WebGLRenderer | SystemRenderer, options?: PIXI.interaction.InteractionManagerOptions);
         mapPositionToPoint(point: PIXI.Point, x: number, y: number): void;
+    }
+}
+declare namespace PIXI.extras {
+    class NineSlicePlane extends PIXI.mesh.NineSlicePlane {
+        protected _refresh(): void;
+        updateHorizontalVertices(): void;
+        updateVerticalVertices(): void;
     }
 }
 declare namespace fgui {

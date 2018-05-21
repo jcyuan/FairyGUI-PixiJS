@@ -13768,8 +13768,7 @@ var fgui;
                     this.$disp = ts;
                 }
                 else if (item.scale9Grid) {
-                    this.$disp = new PIXI.mesh.NineSlicePlane(item.texture);
-                    this.scale9Grid = item.scale9Grid;
+                    this.$disp = new PIXI.extras.NineSlicePlane(item.texture, item.scale9Grid.left, item.scale9Grid.top, Math.max(0, item.texture.width - item.scale9Grid.width - item.scale9Grid.x), Math.max(0, item.texture.height - item.scale9Grid.height - item.scale9Grid.y));
                     this.tiledSlices = item.tiledSlices;
                 }
                 else
@@ -13828,18 +13827,28 @@ var fgui;
             configurable: true
         });
         Object.defineProperty(UIImage.prototype, "scale9Grid", {
+            /**
+             * rect = x,y,w,h = l,t,r,b
+             */
             get: function () {
-                if (this.$disp instanceof PIXI.mesh.NineSlicePlane)
-                    return this.$scale9Rect;
+                if (this.$disp instanceof PIXI.mesh.NineSlicePlane) {
+                    return new PIXI.Rectangle(this.$disp.leftWidth, this.$disp.topHeight, this.$disp.rightWidth, this.$disp.bottomHeight);
+                }
                 return null;
             },
-            set: function (v) {
+            /**
+             * rect = x,y,w,h = l,t,r,b
+             */
+            set: function (rect) {
                 if (this.$disp instanceof PIXI.mesh.NineSlicePlane) {
-                    this.$scale9Rect = v;
-                    this.$disp.leftWidth = v.x;
-                    this.$disp.topHeight = v.y;
-                    this.$disp.rightWidth = Math.max(0, this.$disp.width - v.width - v.x);
-                    this.$disp.bottomHeight = Math.max(0, this.$disp.height - v.height - v.y);
+                    if (rect.left != this.$disp.leftWidth)
+                        this.$disp.leftWidth = rect.left;
+                    if (rect.top != this.$disp.topHeight)
+                        this.$disp.topHeight = rect.top;
+                    if (rect.right != this.$disp.rightWidth)
+                        this.$disp.rightWidth = rect.right;
+                    if (rect.bottom != this.$disp.bottomHeight)
+                        this.$disp.bottomHeight = rect.bottom;
                 }
             },
             enumerable: true,
@@ -13856,7 +13865,6 @@ var fgui;
             configurable: true
         });
         UIImage.prototype.destroy = function (options) {
-            this.$scale9Rect = null;
             if (this.$disp) {
                 this.$disp.destroy(options);
                 this.$disp = null;
@@ -14512,6 +14520,43 @@ var PIXI;
         PIXI.WebGLRenderer.registerPlugin("interaction", PIXI.extras.InteractionManager);
     })(extras = PIXI.extras || (PIXI.extras = {}));
 })(PIXI || (PIXI = {}));
+var PIXI;
+(function (PIXI) {
+    var extras;
+    (function (extras) {
+        var NineSlicePlane = (function (_super) {
+            __extends(NineSlicePlane, _super);
+            function NineSlicePlane() {
+                return _super !== null && _super.apply(this, arguments) || this;
+            }
+            NineSlicePlane.prototype._refresh = function () {
+                if (isNaN(this._leftWidth) || isNaN(this._topHeight) || isNaN(this._rightWidth) || isNaN(this._bottomHeight))
+                    return; //call stack: super() -> Plane.refresh -> this._refresh() but now _leftWidth etc are undefined, so the calculations in this._refresh are useless.
+                _super.prototype._refresh.call(this);
+            };
+            NineSlicePlane.prototype.updateHorizontalVertices = function () {
+                var vertices = this.vertices;
+                var h = this._topHeight + this._bottomHeight;
+                var scale = this._height > h ? 1.0 : this._height / h;
+                vertices[9] = vertices[11] = vertices[13] = vertices[15] = this._topHeight * scale;
+                vertices[17] = vertices[19] = vertices[21] = vertices[23] = this._height - this._bottomHeight * scale;
+                vertices[25] = vertices[27] = vertices[29] = vertices[31] = this._height;
+            };
+            ;
+            NineSlicePlane.prototype.updateVerticalVertices = function () {
+                var vertices = this.vertices;
+                var w = this._leftWidth + this._rightWidth;
+                var scale = this._width > w ? 1.0 : this._width / w;
+                vertices[2] = vertices[10] = vertices[18] = vertices[26] = this._leftWidth * scale;
+                vertices[4] = vertices[12] = vertices[20] = vertices[28] = this._width - this._rightWidth * scale;
+                vertices[6] = vertices[14] = vertices[22] = vertices[30] = this._width;
+            };
+            ;
+            return NineSlicePlane;
+        }(PIXI.mesh.NineSlicePlane));
+        extras.NineSlicePlane = NineSlicePlane;
+    })(extras = PIXI.extras || (PIXI.extras = {}));
+})(PIXI || (PIXI = {}));
 var fgui;
 (function (fgui) {
     var DisplayListItem = (function () {
@@ -14815,14 +14860,11 @@ var fgui;
                     case 0 /* Image */: {
                         str = cxml.attributes.scale;
                         if (str == "9grid") {
-                            pi.scale9Grid = new PIXI.Rectangle();
                             str = cxml.attributes.scale9grid;
                             if (str) {
                                 var arr = str.split(UIPackage.sep0);
-                                pi.scale9Grid.x = parseInt(arr[0]);
-                                pi.scale9Grid.y = parseInt(arr[1]);
-                                pi.scale9Grid.width = parseInt(arr[2]);
-                                pi.scale9Grid.height = parseInt(arr[3]);
+                                var rect = new PIXI.Rectangle(parseInt(arr[0]), parseInt(arr[1]), parseInt(arr[2]), parseInt(arr[3]));
+                                pi.scale9Grid = rect;
                                 str = cxml.attributes.gridTile;
                                 if (str)
                                     pi.tiledSlices = parseInt(str);

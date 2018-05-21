@@ -2,8 +2,6 @@ namespace fgui {
 
     export class UIImage extends PIXI.Container implements IUIObject {
         protected $disp: PIXI.extras.TilingSprite | PIXI.mesh.NineSlicePlane | PIXI.Sprite;
-        protected $scale9Rect:PIXI.Rectangle;
-
         public UIOwner:GObject;
 
         public constructor(owner?:GObject) {
@@ -11,13 +9,12 @@ namespace fgui {
             this.UIOwner = owner;
             this.interactive = this.interactiveChildren = false;
         }
-
+        
         /**@internal */
         $initDisp(item?: PackageItem): void {
             if (this.$disp) return;
 
-            if(item)
-            {
+            if(item) {
                 item.load();
 
                 if (item.scaleByTile) {
@@ -25,8 +22,13 @@ namespace fgui {
                     this.$disp = ts;
                 }
                 else if (item.scale9Grid) {
-                    this.$disp = new PIXI.mesh.NineSlicePlane(item.texture);
-                    this.scale9Grid = item.scale9Grid;
+                    this.$disp = new PIXI.extras.NineSlicePlane(
+                        item.texture,
+                        item.scale9Grid.left,
+                        item.scale9Grid.top,
+                        Math.max(0, item.texture.width - item.scale9Grid.width - item.scale9Grid.x),
+                        Math.max(0, item.texture.height - item.scale9Grid.height - item.scale9Grid.y)
+                    );
                     this.tiledSlices = item.tiledSlices;
                 }
                 else
@@ -78,19 +80,34 @@ namespace fgui {
             this.$disp.texture = v;
         }
 
+        /**
+         * rect = x,y,w,h = l,t,r,b
+         */
         public get scale9Grid(): PIXI.Rectangle {
-            if (this.$disp instanceof PIXI.mesh.NineSlicePlane)
-                return this.$scale9Rect;
+            if (this.$disp instanceof PIXI.mesh.NineSlicePlane) {
+                return new PIXI.Rectangle(
+                    this.$disp.leftWidth,
+                    this.$disp.topHeight,
+                    this.$disp.rightWidth,
+                    this.$disp.bottomHeight
+                );
+            }
             return null;
         }
 
-        public set scale9Grid(v: PIXI.Rectangle) {
+        /**
+         * rect = x,y,w,h = l,t,r,b
+         */
+        public set scale9Grid(rect: PIXI.Rectangle) {
             if (this.$disp instanceof PIXI.mesh.NineSlicePlane) {
-                this.$scale9Rect = v;
-                this.$disp.leftWidth = v.x;
-                this.$disp.topHeight = v.y;
-                this.$disp.rightWidth = Math.max(0, this.$disp.width - v.width - v.x);
-                this.$disp.bottomHeight = Math.max(0, this.$disp.height - v.height - v.y);
+                if(rect.left != this.$disp.leftWidth)
+                    this.$disp.leftWidth = rect.left;
+                if(rect.top != this.$disp.topHeight)
+                    this.$disp.topHeight = rect.top;
+                if(rect.right != this.$disp.rightWidth)
+                    this.$disp.rightWidth = rect.right;
+                if(rect.bottom != this.$disp.bottomHeight)
+                    this.$disp.bottomHeight = rect.bottom;
             }
         }
         
@@ -103,7 +120,6 @@ namespace fgui {
         }
 
         public destroy(options?: boolean | PIXI.DestroyOptions): void {
-            this.$scale9Rect = null;
             if(this.$disp) {
                 this.$disp.destroy(options);
                 this.$disp = null;
