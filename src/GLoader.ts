@@ -366,6 +366,12 @@ namespace fgui {
                             else
                                 sy = sx;
                         }
+                        else if (this.$fill == LoaderFillType.ScaleNoBorder) {
+                            if (sx > sy)
+                                sy = sx;
+                            else
+                                sx = sy;
+                        }
                         this.$contentWidth = this.$contentSourceWidth * sx;
                         this.$contentHeight = this.$contentSourceHeight * sy;
                     }

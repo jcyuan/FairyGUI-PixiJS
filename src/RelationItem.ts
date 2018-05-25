@@ -136,7 +136,7 @@ namespace fgui {
 
                 this.$owner.updateGearFromRelations(GearType.XY, ox, oy);
 
-                if (this.$owner.parent != null) {
+                if (this.$owner.parent != null && this.$owner.parent.$transitions.length > 0) {
                     this.$owner.parent.$transitions.forEach(t => {
                         t.updateFromRelations(this.$owner.id, ox, oy);
                     }, this);
@@ -406,7 +406,7 @@ namespace fgui {
 
                 this.$owner.updateGearFromRelations(GearType.XY, ox, oy);
 
-                if (this.$owner.parent != null) {
+                if (this.$owner.parent != null && this.$owner.parent.$transitions.length > 0) {
                     this.$owner.parent.$transitions.forEach(t => {
                         t.updateFromRelations(this.$owner.id, ox, oy);
                     }, this);
@@ -438,7 +438,7 @@ namespace fgui {
 
                 this.$owner.updateGearFromRelations(GearType.XY, ox, oy);
 
-                if (this.$owner.parent != null) {
+                if (this.$owner.parent != null && this.$owner.parent.$transitions.length > 0) {
                     this.$owner.parent.$transitions.forEach(t => {
                         t.updateFromRelations(this.$owner.id, ox, oy);
                     }, this);

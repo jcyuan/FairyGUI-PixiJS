@@ -91,7 +91,7 @@ namespace fgui {
         export const enum AutoSizeType { None, Both, Height, Shrink };
         export const enum AlignType { Left = "left", Center = "center", Right = "right" };
         export const enum VertAlignType { Top, Middle, Bottom };
-        export const enum LoaderFillType { None, Scale, ScaleMatchHeight, ScaleMatchWidth, ScaleFree };
+        export const enum LoaderFillType { None, Scale, ScaleMatchHeight, ScaleMatchWidth, ScaleFree, ScaleNoBorder };
         export const enum ListLayoutType { SingleColumn, SingleRow, FlowHorizontal, FlowVertical, Pagination };
         export const enum ListSelectionMode { Single, Multiple, Multiple_SingleClick, None };
         export const enum PackageItemType { Image, Swf, MovieClip, Sound, Component, Misc, Font, Atlas };
@@ -204,6 +204,8 @@ namespace fgui {
                     return LoaderFillType.ScaleMatchWidth;
                 case "scaleFree":
                     return LoaderFillType.ScaleFree;
+                case "scaleNoBorder":
+                    return LoaderFillType.ScaleNoBorder;
                 default:
                     return LoaderFillType.None;
             }
