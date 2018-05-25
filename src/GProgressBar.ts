@@ -70,8 +70,11 @@ namespace fgui {
 
         public tweenValue(value: number, duration: number): createjs.Tween {
             if (this.$value != value) {
-                if (this.$tweener)
+                if (this.$tweener) {
                     this.$tweener.paused = true;
+                    this.$tweener.removeAllEventListeners();
+                    createjs.Tween.removeTweens(this);
+                }
 
                 this.$tweenValue = this.$value;
                 this.$value = value;
@@ -87,8 +90,8 @@ namespace fgui {
             this.update(this.$tweenValue);
         }
 
-        public update(newValue: number): void {
-            let percent: number = Math.min(newValue / this.$max, 1);
+        public update(val: number): void {
+            let percent: number = this.$max != 0 ? Math.min(val / this.$max, 1) : 0;
             if (this.$titleObject) {
                 switch (this.$titleType) {
                     case ProgressTitleType.Percent:
@@ -96,11 +99,11 @@ namespace fgui {
                         break;
 
                     case ProgressTitleType.ValueAndMax:
-                        this.$titleObject.text = `${Math.round(newValue)}/${Math.round(this.$max)}`;
+                        this.$titleObject.text = `${Math.round(val)}/${Math.round(this.$max)}`;
                         break;
 
                     case ProgressTitleType.Value:
-                        this.$titleObject.text = `${Math.round(newValue)}`;
+                        this.$titleObject.text = `${Math.round(val)}`;
                         break;
 
                     case ProgressTitleType.Max:
