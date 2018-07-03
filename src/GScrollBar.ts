@@ -37,6 +37,10 @@ namespace fgui {
             }
         }
 
+        public get scrollPerc():number {
+            return this.$scrollPerc;
+        }
+
         public set scrollPerc(val: number) {
             this.$scrollPerc = val;
             if (this.$vertical)
