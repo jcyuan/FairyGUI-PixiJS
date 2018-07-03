@@ -1,3 +1,5 @@
+/// <reference path="../GRoot.ts" />
+
 namespace fgui.utils {
     export class DragIndicator {
 
@@ -37,7 +39,7 @@ namespace fgui.utils {
             this.$sourceData = sourceData;
             this.$agent.url = icon;
             GRoot.inst.addChild(this.$agent);
-            let pt: PIXI.Point = GRoot.inst.globalToLocal(GRoot.statusData.mouseX, GRoot.statusData.mouseY);
+            const pt: PIXI.Point = GRoot.inst.globalToLocal(GRoot.globalMouseStatus.mouseX, GRoot.globalMouseStatus.mouseY);
             this.$agent.setXY(pt.x, pt.y);
             this.$agent.startDrag(touchPointID);
         }
