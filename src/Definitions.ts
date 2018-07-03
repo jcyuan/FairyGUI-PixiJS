@@ -3,6 +3,8 @@ namespace fgui {
         let win:any = window;
         let hasPointer = !!(win.PointerEvent || win.MSPointerEvent);
         let hasTouch = 'ontouchstart' in window && PIXI.utils.isMobile.any;
+
+        export type IndexedObject = { [key:string]: any };
     
         export class InteractiveEvents {
             public static Down:string = hasPointer ? "pointerdown" : hasTouch ? "touchstart" : "mousedown";
@@ -96,6 +98,16 @@ namespace fgui {
         export const enum ListSelectionMode { Single, Multiple, Multiple_SingleClick, None };
         export const enum PackageItemType { Image, Swf, MovieClip, Sound, Component, Misc, Font, Atlas };
         export const enum ProgressTitleType { Percent, ValueAndMax, Value, Max };
+
+        export const enum Keys {
+            Up = 38,
+            Down = 40,
+            Left = 37,
+            Right = 39,
+            Shift = 16,
+            Alt = 18,
+            Ctrl = 17
+        };
     
         export const enum FlipType { None, Horizontal, Vertical, Both };
 
@@ -414,7 +426,7 @@ namespace fgui {
         };
     
         export function ParseEaseType(name: string): (t: number) => number {
-            return easeMap[name] || easeMap["linear"];
+            return easeMap[name] || easeMap["Linear"];
         }
     }
     
