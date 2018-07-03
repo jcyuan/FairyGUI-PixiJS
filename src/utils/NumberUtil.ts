@@ -39,5 +39,8 @@ namespace fgui.utils {
 			return n * NumberUtil.RADIAN;
 		}
 		
+		public static lerp(s:number, e:number, p:number):number {
+			return s + p * (e - s);
+		}
 	}
 }
