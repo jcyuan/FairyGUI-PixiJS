@@ -1,9 +1,8 @@
 namespace fgui {
-
     export class UIImage extends PIXI.Container implements IUIObject {
-        protected $disp: PIXI.extras.TilingSprite | PIXI.mesh.NineSlicePlane | PIXI.Sprite;
         public UIOwner:GObject;
-
+        protected $disp: PIXI.extras.TilingSprite | PIXI.extras.NineSlicePlane | PIXI.extras.Sprite;
+        
         public constructor(owner?:GObject) {
             super();
             this.UIOwner = owner;
@@ -32,10 +31,10 @@ namespace fgui {
                     this.tiledSlices = item.tiledSlices;
                 }
                 else
-                    this.$disp = new PIXI.Sprite(item.texture);
+                    this.$disp = new PIXI.extras.Sprite(item.id, item.texture);
             }
             else
-                this.$disp = new PIXI.Sprite();
+                this.$disp = new PIXI.extras.Sprite();
             
             this.addChild(this.$disp);
         }
@@ -117,6 +116,26 @@ namespace fgui {
 
         public set tiledSlices(flags: number) {
             //not support
+        }
+
+        public get flipX():boolean {
+            return this.$disp.flipX;
+        }
+
+        public get flipY():boolean {
+            return this.$disp.flipY;
+        }
+
+        public set flipX(v:boolean) {
+            if(GRoot.inst.applicationContext.renderer.type != PIXI.RENDERER_TYPE.WEBGL)
+                return;
+            this.$disp.flipX = v;
+        }
+
+        public set flipY(v:boolean) {
+            if(GRoot.inst.applicationContext.renderer.type != PIXI.RENDERER_TYPE.WEBGL)
+                return;
+            this.$disp.flipY = v;
         }
 
         public destroy(options?: boolean | PIXI.DestroyOptions): void {
