@@ -228,7 +228,7 @@ namespace fgui.controller {
                 }
             }
 
-            let col: fgui.utils.XmlNode[] = xml.children;
+            let col: utils.XmlNode[] = xml.children;
             if (col.length > 0) {
                 this.$actions = this.$actions || [];
                 col.forEach(cxml => {

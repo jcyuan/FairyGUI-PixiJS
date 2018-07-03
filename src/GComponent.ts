@@ -499,13 +499,14 @@ namespace fgui {
             scrollBarDisplay: ScrollBarDisplayType,
             flags: number,
             vtScrollBarRes: string,
-            hzScrollBarRes: string): void {
+            hzScrollBarRes: string,
+            headerRes:string,
+            footerRes:string): void {
             if (this.$rootContainer == this.$container) {
                 this.$container = new PIXI.Container();
                 this.$rootContainer.addChild(this.$container);
             }
-            this.$scrollPane = new ScrollPane(this, scroll, scrollBarMargin, scrollBarDisplay, flags, vtScrollBarRes, hzScrollBarRes);
-            this.setBoundsChangedFlag();
+            this.$scrollPane = new ScrollPane(this, scroll, scrollBarMargin, scrollBarDisplay, flags, vtScrollBarRes, hzScrollBarRes, headerRes, footerRes);
         }
 
         protected setupOverflow(overflow: OverflowType): void {
@@ -541,14 +542,10 @@ namespace fgui {
 
         protected handleGrayedChanged(): void {
             let c: controller.Controller = this.getController("grayed");
-            if (c != null) {
+            if (c != null)
                 c.selectedIndex = this.grayed ? 1 : 0;
-                return;
-            }
-            let v: boolean = this.grayed;
-            this.$children.forEach(child => {
-                child.grayed = v;
-            });
+            else
+                super.handleGrayedChanged();
         }
 
         public setBoundsChangedFlag(): void {
@@ -802,7 +799,15 @@ namespace fgui {
                     hzScrollBarRes = arr[1];
                 }
 
-                this.setupScroll(scrollBarMargin, scroll, scrollBarDisplay, scrollBarFlags, vtScrollBarRes, hzScrollBarRes);
+                let headerRes:string, footerRes:string;
+				str = xml.attributes.ptrRes;
+				if(str) {
+					arr = str.split(",");
+					headerRes = arr[0];
+					footerRes = arr[1];
+				}
+
+                this.setupScroll(scrollBarMargin, scroll, scrollBarDisplay, scrollBarFlags, vtScrollBarRes, hzScrollBarRes, headerRes, footerRes);
             }
             else
                 this.setupOverflow(overflow);

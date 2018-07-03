@@ -535,7 +535,7 @@ namespace fgui {
 
         public get resourceURL(): string {
             if (this.packageItem != null)
-                return `{ui://${this.packageItem.owner.id}${this.packageItem.id}`;
+                return `ui://${this.packageItem.owner.id}${this.packageItem.id}`;
             else
                 return null;
         }
@@ -1098,8 +1098,8 @@ namespace fgui {
             if (GObject.draggingObject != null)
                 GObject.draggingObject.stopDrag();
 
-            GObject.sGlobalDragStart.x = GRoot.statusData.mouseX;
-            GObject.sGlobalDragStart.y = GRoot.statusData.mouseY;
+            GObject.sGlobalDragStart.x = GRoot.globalMouseStatus.mouseX;
+            GObject.sGlobalDragStart.y = GRoot.globalMouseStatus.mouseY;
 
             this.localToGlobalRect(0, 0, this.width, this.height, GObject.sGlobalRect);
             GObject.draggingObject = this;

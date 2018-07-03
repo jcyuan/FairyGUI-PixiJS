@@ -30,7 +30,7 @@ namespace fgui.controller {
         }
 
         /**@internal */
-        public setup(xml: fgui.utils.XmlNode): void {
+        public setup(xml: utils.XmlNode): void {
             super.setup(xml);
 
             this.transitionName = xml.attributes.transition;

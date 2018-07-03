@@ -35,13 +35,13 @@ namespace fgui {
         public set flip(value: FlipType) {
             if (this.$flip != value) {
                 this.$flip = value;
-                let sx: number = 1, sy: number = 1;
+                let sx: boolean = false, sy: boolean = false;
                 if (this.$flip == FlipType.Horizontal || this.$flip == FlipType.Both)
-                    sx = -1;
+                    sx = true;
                 if (this.$flip == FlipType.Vertical || this.$flip == FlipType.Both)
-                    sy = -1;
-                this.$content.scale.set(sx, sy);
-                this.handleXYChanged();
+                    sy = true;
+                this.$content.flipX = sx;
+                this.$content.flipY = sy;
             }
         }
 

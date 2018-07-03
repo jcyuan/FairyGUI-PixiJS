@@ -24,7 +24,7 @@ namespace fgui.utils {
             this.$input.on("updateText", this.updateText, this);
             this.$input.on(FocusEvent.CHANGED, this.focusHandler, this);
 
-            this.$textField.on(fgui.InteractiveEvents.Down, this.textFieldDownHandler, this);
+            this.$textField.on(InteractiveEvents.Down, this.textFieldDownHandler, this);
             
             this.$inited = true;
         }
@@ -38,8 +38,8 @@ namespace fgui.utils {
             
             this.$input.$removeFromStage();
 
-            this.$textField.off(fgui.InteractiveEvents.Down, this.textFieldDownHandler, this);
-            GRoot.inst.off(fgui.InteractiveEvents.Down, this.onStageDown, this);
+            this.$textField.off(InteractiveEvents.Down, this.textFieldDownHandler, this);
+            GRoot.inst.off(InteractiveEvents.Down, this.onStageDown, this);
             
             this.$input.off("updateText", this.updateText, this);
             this.$input.off(FocusEvent.CHANGED, this.focusHandler, this);
@@ -80,7 +80,7 @@ namespace fgui.utils {
         }
 
         private onStageDown(e:PIXI.interaction.InteractionEvent):void {
-            let target = fgui.GObject.castFromNativeObject(e.currentTarget);
+            let target = GObject.castFromNativeObject(e.currentTarget);
             if(target != this.$textField)
                 this.$input.$hide();
         }
@@ -97,7 +97,7 @@ namespace fgui.utils {
             else if (type == "blur") {
                 if (this.$focused) {
                     this.$focused = false;
-                    GRoot.inst.off(fgui.InteractiveEvents.Down, this.onStageDown, this);
+                    GRoot.inst.off(InteractiveEvents.Down, this.onStageDown, this);
                     this.$textField.$isTyping = false;
                     this.$textField.alpha = 1;
                     this.$input.$onBlur();
@@ -166,9 +166,9 @@ namespace fgui.utils {
             if (!this.$textField.visible || this.$focused)
                 return;
             
-            GRoot.inst.off(fgui.InteractiveEvents.Down, this.onStageDown, this);
+            GRoot.inst.off(InteractiveEvents.Down, this.onStageDown, this);
             GTimer.inst.callLater(() => {
-                GRoot.inst.on(fgui.InteractiveEvents.Down, this.onStageDown, this);
+                GRoot.inst.on(InteractiveEvents.Down, this.onStageDown, this);
             }, this);
 
             this.$input.$show();

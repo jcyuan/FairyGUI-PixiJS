@@ -49,7 +49,7 @@ namespace fgui {
                 this.setTransform(this.$wrapper, "0% 0% 0px");
                 div.appendChild(this.$wrapper);
 
-                GRoot.inst.on(fgui.InteractiveEvents.Click, this.canvasClickHandler, this);
+                GRoot.inst.on(InteractiveEvents.Click, this.canvasClickHandler, this);
                 
                 this.initInputElement(true);   //input
                 this.initInputElement(false);  //textarea
@@ -99,7 +99,7 @@ namespace fgui {
         }
         
         /**@internal */
-        $updateSize(sx:number, sy:number):void {
+        updateSize(sx:number, sy:number):void {
             if(!this.$canvas)
                 return;
 

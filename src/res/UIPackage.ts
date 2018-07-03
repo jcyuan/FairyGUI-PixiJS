@@ -25,7 +25,8 @@ namespace fgui {
         public orig: PIXI.Rectangle;
         public trim: PIXI.Rectangle;
         public rotate: number;
-        public constructor(atlasName: string, frame?: PIXI.Rectangle, orig?: PIXI.Rectangle, trim?: PIXI.Rectangle, rotate?: number) {
+        
+        public constructor(atlasName:string, frame?:PIXI.Rectangle, orig?:PIXI.Rectangle, trim?:PIXI.Rectangle, rotate?:number) {
             this.atlasName = atlasName;
             this.frame = frame;
             this.orig = orig;
@@ -168,8 +169,7 @@ namespace fgui {
             UIPackage.$stringsSource = {};
             let xmlroot: utils.XmlNode = utils.XmlParser.tryParse(source);
             xmlroot.children.forEach(cxml => {
-                if (cxml.nodeName == "string")
-                {
+                if (cxml.nodeName == "string") {
                     let key: string = cxml.attributes.name;
                     let i: number = key.indexOf("-");
                     if (i == -1) return;
@@ -225,8 +225,7 @@ namespace fgui {
 
             let str = this.getResDescriptor("sprites.bytes");
             str && str.split(UIPackage.sep1).forEach((str, index) => {
-                if(index >= 1 && str && str.length)
-                {
+                if(index >= 1 && str && str.length) {
                     let arr: string[] = str.split(UIPackage.sep2);
 
                     let texID: string;
@@ -245,13 +244,11 @@ namespace fgui {
 
                     let cfg: AtlasConfig = new AtlasConfig(texID);
                     cfg.frame = new PIXI.Rectangle(parseInt(arr[2]), parseInt(arr[3]), parseInt(arr[4]), parseInt(arr[5]));
+                    cfg.rotate = arr[6] == "1" ? 6 : 0;   //refer to PIXI.GroupD8, the editors rotate image by -90deg
+                    cfg.orig = cfg.rotate != 0 ? new PIXI.Rectangle(0, 0, cfg.frame.height, cfg.frame.width) : null;
                     /*
-                    //just ignored for now - editor not support
-                    let rotate:boolean = arr[6] == "1";  
-                    let trimed:PIXI.Rectangle = ; //ignored for now - editor not support
-                    cfg.orig = orig;
-                    cfg.trim = trimed;
-                    cfg.rotate = rotate ? 2 : 0;*/
+                    cfg.trim = trimed;  //ignored for now - editor not support
+                    */
                     this.$atlasConfigs[itemId] = cfg;
                 }
             });
@@ -355,8 +352,7 @@ namespace fgui {
                 else if (pi.frames != null) {
                     pi.frames.forEach(f => {
                         texture = f.texture;
-                        if(texture)
-                        {
+                        if(texture) {
                             texture.destroy();
                             //texture.baseTexture.destroy();
                             PIXI.Texture.removeFromCache(texture);
@@ -438,8 +434,7 @@ namespace fgui {
                     cfg.texCacheID = `${this.$resKey}@${cfg.atlasName}@${cfgName}`;
 
                 let tex = PIXI.utils.TextureCache[cfg.texCacheID];
-                if(!tex)
-                {
+                if(!tex) {
                     tex = new PIXI.Texture(atlasTexture.baseTexture, cfg.frame, cfg.orig, cfg.trim, cfg.rotate);
                     PIXI.Texture.addToCache(tex, cfg.texCacheID);
                 }
@@ -708,8 +703,7 @@ namespace fgui {
             let maxCharHeight:number = 0;
 
             lines.forEach(line => {
-                if(line && line.length)
-                {
+                if(line && line.length) {
                     str = utils.StringUtil.trim(line);
                     let arr: string[] = str.split(UIPackage.sep2);
                     arr.forEach(v => {
@@ -728,8 +722,7 @@ namespace fgui {
                         bg.height = parseInt(kv.height) || 0;
                         maxCharHeight = Math.max(bg.height, maxCharHeight);
                         bg.advance = parseInt(kv.xadvance) || 0;
-                        if (kv.chnl != undefined)
-                        {
+                        if (kv.chnl != undefined) {
                             bg.channel = parseInt(kv.chnl);
                             if (bg.channel == 15)
                                 bg.channel = 4;

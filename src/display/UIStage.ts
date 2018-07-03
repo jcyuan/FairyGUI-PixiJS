@@ -1,3 +1,5 @@
+/// <reference path="../utils/DOMEventManager.ts" />
+
 namespace fgui {
 
     export const enum StageOrientation {
@@ -145,24 +147,35 @@ namespace fgui {
                 throw new Error("Invalid designWidth / designHeight in the parameter 'stageOptions'.");
 
             this.$options = opt;
-
+            
+            this.$appContext.view.style.position = "absolute";
             let container = this.$appContext.view.parentElement;
+            let style = container.style;
+            //if parent is not a DIV box, make one
             if(container.tagName != "DIV") {
                 container = document.createElement("DIV");
+                style.position = "relative";
+                style.left = style.top = "0px";
+                style.width = style.height = "100%";  //and set default full-screen
+                style.overflow = "hidden";
                 this.$appContext.view.parentElement.appendChild(container);
+                container.appendChild(this.$appContext.view);
             }
-            let style = container.style;
-            style.position = "relative";
-            style.left = style.top = "0px";
-            style.width = style.height = "100%";
-            style.overflow = "hidden";
-            this.$appContext.view.style.position = "absolute";
+            let containerPosition:string;
+            if(document.defaultView && document.defaultView.getComputedStyle)
+                containerPosition = document.defaultView.getComputedStyle(container).position;
+            else
+                containerPosition = style.position;
+            if(containerPosition == "" || containerPosition == "static") {
+                containerPosition = "relative";
+                container.style.position = containerPosition;
+            }
             
             HTMLInput.inst.initialize(container, this.$appContext.view);
-            this.$updateScreenSize();
+            this.updateScreenSize();
         }
 
-        public get orientation(): string {
+        public get orientation(): StageOrientation {
             return this.$options.orientation;
         }
 
@@ -188,7 +201,7 @@ namespace fgui {
 
         public set resolution(v: number) {
             this.$options.resolution = v;
-            this.$updateScreenSize();
+            this.updateScreenSize();
         }
 
         public get scaleX():number{
@@ -199,11 +212,19 @@ namespace fgui {
             return this.$scaleY;
         }
 
+        public get designWidth():number {
+            return this.$options.designWidth;
+        }
+
+        public get designHeight():number {
+            return this.$options.designHeight;
+        }
+
         public setDesignSize(width: number, height: number): void {
             let option = this.$options;
             option.designWidth = width;
             option.designHeight = height;
-            this.$updateScreenSize();
+            this.updateScreenSize();
         }
 
         protected calculateStageSize(scaleMode: string, screenWidth: number, screenHeight: number, contentWidth: number, contentHeight: number): { stageWidth: number, stageHeight: number, displayWidth: number, displayHeight: number } {
@@ -257,7 +278,7 @@ namespace fgui {
         }
 
         /**@internal */
-        $updateScreenSize(): void {
+        updateScreenSize(): void {
 
             if(HTMLInput.isTyping) return;
 
@@ -344,7 +365,7 @@ namespace fgui {
             im.stageScaleX = this.$scaleX;
             im.stageScaleY = this.$scaleY;
             this.$appContext.renderer.resize(stageWidth, stageHeight);
-            HTMLInput.inst.$updateSize(displayWidth / stageWidth, displayHeight / stageHeight);
+            HTMLInput.inst.updateSize(displayWidth / stageWidth, displayHeight / stageHeight);
             
             this.emit(DisplayObjectEvent.SIZE_CHANGED, this);
         }
@@ -374,11 +395,11 @@ namespace fgui {
         resizeCheckTimer = NaN;
         UIStageInst.forEach(stage => {
             if (onSafari) stage.offsetY = (document.body.clientHeight || document.documentElement.clientHeight) - window.innerHeight;
-            stage.$updateScreenSize();
+            stage.updateScreenSize();
         });
     }
 
-    window.addEventListener("resize", function () {
+    utils.DOMEventManager.inst.on('resize', function() {
         if (isNaN(resizeCheckTimer)) {
             resizeCheckTimer = window.setTimeout(resizeHandler, 300);
         }

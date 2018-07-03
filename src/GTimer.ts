@@ -6,6 +6,7 @@ namespace fgui {
 
         private $enumIdx: number = 0;
         private $enumCount: number = 0;
+        private $curTime:number = Date.now();
 
         private $ticker:PIXI.ticker.Ticker;
 
@@ -33,6 +34,7 @@ namespace fgui {
             return null;
         }
 
+        //repeat <= 0 means loop
         public add(delayInMs: number, repeat: number, callback: (...args:any[]) => void, thisObj: any, callbackParam?: any): void {
             let item: TimerItem = this.findItem(callback, thisObj);
             if (!item) {
@@ -46,6 +48,10 @@ namespace fgui {
             item.repeat = repeat;
             item.param = callbackParam;
             item.end = false;
+        }
+
+        public addLoop(delayInMs:number, callback: (...args:any[]) => void, thisObj: any, callbackParam?: any):void {
+            this.add(delayInMs, 0, callback, thisObj, callbackParam);
         }
 
         public callLater(callback: (...args:any[]) => void, thisObj: any, callbackParam?: any): void {
@@ -76,6 +82,14 @@ namespace fgui {
             }
         }
 
+        public get ticker():PIXI.ticker.Ticker {
+            return this.$ticker;
+        }
+
+        public get curTime():number {
+            return this.$curTime;
+        }
+
         public advance(): void {
             this.$enumIdx = 0;
             this.$enumCount = this.$items.length;
@@ -84,7 +98,9 @@ namespace fgui {
                 let item: TimerItem = this.$items[this.$enumIdx];
                 this.$enumIdx++;
 
-                let ms = this.$ticker.elapsedMS;
+                let ms = this.$ticker.deltaTime / PIXI.settings.TARGET_FPMS;
+                this.$curTime += ms;
+
                 if (item.advance(ms)) {
                     if (item.end) {
                         this.$enumIdx--;
@@ -109,7 +125,7 @@ namespace fgui {
         }
 
         public tickTween():void {
-            createjs.Tween.tick(this.$ticker.elapsedMS, !this.$ticker.started);
+            createjs.Tween.tick(this.$ticker.deltaTime / PIXI.settings.TARGET_FPMS, !this.$ticker.started);
         }
 
         public setTicker(ticker:PIXI.ticker.Ticker):void {
@@ -125,7 +141,7 @@ namespace fgui {
                 this.$ticker.start();
         }
     }
-    
+
     class TimerItem {
         public delay: number = 0;
         public counter: number = 0;
@@ -135,8 +151,8 @@ namespace fgui {
         public param: any;
         public end: boolean;
 
-        public advance(elapsed: number = 0): boolean {
-            this.counter += elapsed;
+        public advance(delta: number = 0): boolean {
+            this.counter += delta;
             if (this.counter >= this.delay) {
                 this.counter -= this.delay;
                 if (this.counter > this.delay)

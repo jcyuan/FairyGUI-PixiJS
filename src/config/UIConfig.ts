@@ -20,14 +20,14 @@ namespace fgui {
         public static verticalScrollBar: string;
         /** scrolling distance per action in pixel*/
         public static defaultScrollSpeed: number = 25;
-        /** dragging speed ratio for scrollPane.*/
-        public static defaultTouchScrollSpeedRatio: number = 1;
         /** default scrollbar display mode. It's recommended to set ScrollBarDisplayType.Visible for Desktop environment and ScrollBarDisplayType.Auto for mobile environment.*/
         public static defaultScrollBarDisplay: number = ScrollBarDisplayType.Visible;
         /** allow user to drag the content of a container. Set to true for mobile is recommended.*/
         public static defaultScrollTouchEffect: boolean = true;
         /** enable bounce effect when the scrolling reaches to the edge of a container. Set to true for mobile is recommended.*/
         public static defaultScrollBounceEffect: boolean = true;
+        /** Deceleration ratio of scrollpane when its in touch dragging.*/
+        public static defaultScrollDecelerationRate:number = .967;
 
         /** global PopupMenu name.*/
         public static popupMenu: string;
