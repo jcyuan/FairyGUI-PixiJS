@@ -29,7 +29,7 @@ namespace fgui.controller {
         protected leave(controller: Controller): void {
         }
         
-        public setup(xml: fgui.utils.XmlNode): void {
+        public setup(xml: utils.XmlNode): void {
             let str: String;
 
             str = xml.attributes.fromPage;

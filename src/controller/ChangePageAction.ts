@@ -21,7 +21,7 @@ namespace fgui.controller {
 			}
 		}
 
-		public setup(xml: fgui.utils.XmlNode): void {
+		public setup(xml: utils.XmlNode): void {
 			super.setup(xml);
 
 			this.objectId = xml.attributes.objectId;
