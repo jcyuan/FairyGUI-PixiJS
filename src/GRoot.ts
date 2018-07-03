@@ -1,6 +1,6 @@
 namespace fgui {
 
-    export class GRootPointerStatus {
+    export class GRootMouseStatus {
         public touchDown: boolean = false;
         public mouseX: number = 0;
         public mouseY: number = 0;
@@ -24,7 +24,7 @@ namespace fgui {
 
         private static $inst: GRoot;
 
-        private static $retStatus = new GRootPointerStatus();
+        private static $gmStatus = new GRootMouseStatus();
 
         /**
          * the singleton instance of the GRoot object
@@ -36,29 +36,12 @@ namespace fgui {
         }
 
         /**
-         * @deprecated will be removed later, please use pointerStatusData instead
-         */
-        public static get statusData(): GRootPointerStatus {
-            return GRoot.$retStatus;
-        }
-
-        /**
          * the current mouse/pointer data
          */
-        public static get pointerStatusData(): GRootPointerStatus {
-            return GRoot.$retStatus;
+        public static get globalMouseStatus(): GRootMouseStatus {
+            return GRoot.$gmStatus;
         }
-
-        /**
-         * get the objects which are placed underneath the given stage coordinate
-         * @param globalX the stage X
-         * @param globalY the stage Y
-         */
-        public getObjectUnderPoint(globalX:number, globalY:number):GObject {
-            let ret: PIXI.DisplayObject = this.$uiStage.applicationContext.renderer.plugins.interaction.hitTest(GRoot.sHelperPoint, this.nativeStage);
-            return GObject.castFromNativeObject(ret);
-        }
-
+        
         /**
          * the main entry to lauch the UI root, e.g.: GRoot.inst.attachTo(app, options)
          * @param app your PIXI.Application instance to be used in this GRoot instance
@@ -105,6 +88,8 @@ namespace fgui {
             this.$justClosedPopups = [];
 
             this.$uid = GRoot.uniqueID++;
+
+            utils.DOMEventManager.inst.on(DisplayObjectEvent.MOUSE_WHEEL, this.dispatchMouseWheel, this);
         }
 
         public get uniqueID():number {
@@ -129,6 +114,35 @@ namespace fgui {
 
         public get nativeStage(): PIXI.Container {
             return this.$uiStage.nativeStage;
+        }
+
+        public get orientation():StageOrientation {
+            return this.$uiStage.orientation;
+        }
+
+        public get stageWrapper(): UIStage {
+            return this.$uiStage;
+        }
+
+        protected dispatchMouseWheel(evt:any):void {
+            let childUnderMouse = this.getObjectUnderPoint(GRoot.globalMouseStatus.mouseX, GRoot.globalMouseStatus.mouseY);
+            if(childUnderMouse != null) { //bubble
+                while(childUnderMouse.parent && childUnderMouse.parent != this) {
+                    childUnderMouse.emit(DisplayObjectEvent.MOUSE_WHEEL, evt);
+                    childUnderMouse = childUnderMouse.parent;
+                }
+            }
+        }
+
+        /**
+         * get the objects which are placed underneath the given stage coordinate
+         * @param globalX the stage X
+         * @param globalY the stage Y
+         */
+        public getObjectUnderPoint(globalX:number, globalY:number):GObject {
+            GRoot.sHelperPoint.set(globalX, globalY);
+            let ret: PIXI.DisplayObject = this.$uiStage.applicationContext.renderer.plugins.interaction.hitTest(GRoot.sHelperPoint, this.nativeStage);
+            return GObject.castFromNativeObject(ret);
         }
 
         public showWindow(win: Window): void {
@@ -252,7 +266,7 @@ namespace fgui {
                 sizeH = target.height;
             }
             else
-                pos = this.globalToLocal(GRoot.$retStatus.mouseX, GRoot.$retStatus.mouseY);
+                pos = this.globalToLocal(GRoot.$gmStatus.mouseX, GRoot.$gmStatus.mouseY);
 
             let xx: number, yy: number;
             xx = pos.x;
@@ -331,8 +345,8 @@ namespace fgui {
             let xx: number = 0;
             let yy: number = 0;
             if (position == null) {
-                xx = GRoot.$retStatus.mouseX + 10;
-                yy = GRoot.$retStatus.mouseY + 20;
+                xx = GRoot.$gmStatus.mouseX + 10;
+                yy = GRoot.$gmStatus.mouseY + 20;
             }
             else {
                 xx = position.x;
@@ -411,9 +425,9 @@ namespace fgui {
         }
 
         private $stageDown(evt: PIXI.interaction.InteractionEvent): void {
-            GRoot.$retStatus.mouseX = evt.data.global.x;
-            GRoot.$retStatus.mouseY = evt.data.global.y;
-            GRoot.$retStatus.touchDown = true;
+            GRoot.$gmStatus.mouseX = evt.data.global.x;
+            GRoot.$gmStatus.mouseY = evt.data.global.y;
+            GRoot.$gmStatus.touchDown = true;
 
             //check focus
             let mc: PIXI.DisplayObject = evt.target;
@@ -471,12 +485,12 @@ namespace fgui {
         }
 
         private $stageMove(evt: PIXI.interaction.InteractionEvent): void {
-            GRoot.$retStatus.mouseX = evt.data.global.x;
-            GRoot.$retStatus.mouseY = evt.data.global.y;
+            GRoot.$gmStatus.mouseX = evt.data.global.x;
+            GRoot.$gmStatus.mouseY = evt.data.global.y;
         }
 
         private $stageUp(evt: PIXI.interaction.InteractionEvent): void {
-            GRoot.$retStatus.touchDown = false;
+            GRoot.$gmStatus.touchDown = false;
             this.$checkingPopups = false;
         }
 
