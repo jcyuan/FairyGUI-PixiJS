@@ -43,6 +43,17 @@ namespace fgui {
         return true;
     };
 
+    /*
+    * I assume that your project uses CJK languages so that the sentence won't be splitted by ' ' char here,
+    * In case if your project has multiple-language support please override this method in your project like the code below:
+    *      PIXI.TextMetrics.isBreakingSpace = function(char?: string): boolean {
+	       if (typeof char !== 'string')
+	           return false;
+	       //not break by ' ' char here for CJK language, and other alphabetic language like English will be splitted by ' ' char naturally
+	       if(char === ' ' && langSetting.language === 'CJK') return false;
+	       return (PIXI.TextMetrics._breakingSpaces.indexOf(char.charCodeAt(0)) >= 0);
+	   };
+	*/
     PIXI.TextMetrics.isBreakingSpace = function(char?: string): boolean {
         if (typeof char !== 'string')
             return false;
