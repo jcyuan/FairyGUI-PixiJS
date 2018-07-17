@@ -258,11 +258,22 @@ namespace fgui {
         }
 
         /**overwrite this for load resources by your own way */
+        private $loadingTexture:PIXI.Texture = null;
+
         protected loadExternal(): void {
             let texture = PIXI.utils.TextureCache[this.$url];
             if (!texture) {
-                texture = new PIXI.Texture(PIXI.BaseTexture.fromImage(this.$url));
+                let baseTex = PIXI.BaseTexture.fromImage(this.$url);
+                if(!baseTex.hasLoaded) {
+                    baseTex.once("loaded", () => this.$loadResCompleted(texture));
+                    baseTex.once("error", () => this.$loadResCompleted(null));
+                    texture = new PIXI.Texture(baseTex);
+                    this.$loadingTexture = texture;
+                }
+                else
+                    texture = new PIXI.Texture(baseTex);
                 PIXI.Texture.addToCache(texture, this.$url);
+                return;
             }
             this.$loadResCompleted(texture);
         }
@@ -270,10 +281,11 @@ namespace fgui {
         /**free the resource you loaded */
         protected freeExternal(texture: PIXI.Texture): void {
             PIXI.Texture.removeFromCache(texture);
-            texture.destroy(true);
+            texture.destroy(texture.baseTexture != null);
         }
 
         private $loadResCompleted(res: PIXI.Texture): void {
+            this.$loadingTexture = null;
             if (res)
                 this.onExternalLoadSuccess(res);
             else
@@ -290,9 +302,11 @@ namespace fgui {
             }
             else
                 this.$container.addChild(this.$content);
+            //baseTexture loaded, so update frame info
+            texture.frame = new PIXI.Rectangle(0, 0, texture.baseTexture.width, texture.baseTexture.height);
             this.$content.texture = texture;
-            this.$contentSourceWidth = texture.orig.width;
-            this.$contentSourceHeight = texture.orig.height;
+            this.$contentSourceWidth = texture.width;
+            this.$contentSourceHeight = texture.height;
             this.updateLayout();
         }
 
@@ -401,8 +415,13 @@ namespace fgui {
             if (this.$content && this.$content.parent)
                 this.$container.removeChild(this.$content);
 
+            if(this.$loadingTexture) {
+                this.$loadingTexture.baseTexture.removeAllListeners();
+                this.freeExternal(this.$loadingTexture);
+            }
+
             if (this.$contentItem == null && this.$content instanceof UIImage)
-                this.freeExternal(this.$content.texture);
+               this.freeExternal(this.$content.texture);
             
             this.$content && this.$content.destroy();
             this.$content = null;
