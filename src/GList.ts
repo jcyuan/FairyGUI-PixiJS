@@ -484,7 +484,7 @@ namespace fgui {
         }
 
         public removeChildToPoolAt(index: number): void {
-            let child: GObject = super.removeChildAt(index);
+            let child: GObject = this.removeChildAt(index);
             this.returnToPool(child);
         }
 
