@@ -63,7 +63,7 @@ namespace fgui {
         private $header: GComponent;
         private $footer: GComponent;
 
-        private $isDragging: boolean;
+        private $isDragging: boolean = false;
         public static draggingPane: ScrollPane;
         private static $gestureFlag: number = 0;
 
@@ -142,6 +142,7 @@ namespace fgui {
             this.$contentSize = new PIXI.Point();
             this.$pageSize = new PIXI.Point(1, 1);
             this.$overlapSize = new PIXI.Point();
+            this.$tweening = 0;
             this.$tweenTime = new PIXI.Point();
             this.$tweenStart = new PIXI.Point();
             this.$tweenDuration = new PIXI.Point();
