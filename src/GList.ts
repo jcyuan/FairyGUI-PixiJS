@@ -267,7 +267,10 @@ namespace fgui {
         public dispose(): void {
             GTimer.inst.remove(this.$refreshVirtualList, this);
             this.$pool.clear();
-            this.$scrollPane.off(ScrollEvent.SCROLL, this.$scrolled, this);
+            if (this.$scrollPane) {
+                this.$scrollPane.off(ScrollEvent.SCROLL, this.$scrolled, this);
+            }
+            
             super.dispose();
         }
 
