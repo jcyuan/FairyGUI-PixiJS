@@ -434,21 +434,19 @@ namespace fgui {
                 if (this.$widthAutoSize) {
                     w = this.$textWidth;
                     this.$textField.width = w;
-                }
-                else
-                {
-                    w = this.width;
-                    if (this.$heightAutoSize) {
-                        h = this.$textHeight;
-                        if (this.$textField.height != this.$textHeight)
-                            this.$textField.height = this.$textHeight;
-                    }
-                    else {
-                        h = this.height;
-                        if (this.$textHeight > h)
-                            this.$textHeight = h;
-                    }
-                }
+                }                
+                    
+				if (this.$heightAutoSize) {
+					h = this.$textHeight;
+					if (this.$textField.height != this.$textHeight)
+						this.$textField.height = this.$textHeight;
+				}
+				else {
+					h = this.height;
+					if (this.$textHeight > h)
+						this.$textHeight = h;
+				}
+                
             }
 
             if (updateBounds) {
