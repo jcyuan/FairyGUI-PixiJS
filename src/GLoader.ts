@@ -257,25 +257,19 @@ namespace fgui {
             this.$container.addChild(this.$content);
         }
 
-        /**overwrite this for load resources by your own way */
         private $loadingTexture:PIXI.Texture = null;
 
+        /**overwrite this method if you need to load resources by your own way*/
         protected loadExternal(): void {
-            let texture = PIXI.utils.TextureCache[this.$url];
-            if (!texture) {
-                let baseTex = PIXI.BaseTexture.fromImage(this.$url);
-                if(!baseTex.hasLoaded) {
-                    baseTex.once("loaded", () => this.$loadResCompleted(texture));
-                    baseTex.once("error", () => this.$loadResCompleted(null));
-                    texture = new PIXI.Texture(baseTex);
-                    this.$loadingTexture = texture;
-                }
+            let texture = PIXI.Texture.fromImage(this.$url, true);
+            this.$loadingTexture = texture;
+            //TODO: Texture does not have error event... monitor error event on baseTexture will casue cross-error-event problem.
+            texture.once("update", () => {
+                if (!texture.width || !texture.height)
+                    this.$loadResCompleted(null);
                 else
-                    texture = new PIXI.Texture(baseTex);
-                PIXI.Texture.addToCache(texture, this.$url);
-                return;
-            }
-            this.$loadResCompleted(texture);
+                    this.$loadResCompleted(texture);
+            });
         }
 
         /**free the resource you loaded */
@@ -285,11 +279,15 @@ namespace fgui {
         }
 
         private $loadResCompleted(res: PIXI.Texture): void {
-            this.$loadingTexture = null;
             if (res)
                 this.onExternalLoadSuccess(res);
-            else
+            else {
                 this.onExternalLoadFailed();
+                this.$loadingTexture.removeAllListeners();
+                this.freeExternal(this.$loadingTexture);
+                this.$loadingTexture = null;
+            }
+            this.$loadingTexture = null;
         }
         
         /**content loaded */
@@ -416,8 +414,9 @@ namespace fgui {
                 this.$container.removeChild(this.$content);
 
             if(this.$loadingTexture) {
-                this.$loadingTexture.baseTexture.removeAllListeners();
+                this.$loadingTexture.removeAllListeners();
                 this.freeExternal(this.$loadingTexture);
+                this.$loadingTexture = null;
             }
 
             if (this.$contentItem == null && this.$content instanceof UIImage)
