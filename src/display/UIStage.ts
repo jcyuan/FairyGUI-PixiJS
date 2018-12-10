@@ -389,19 +389,13 @@ namespace fgui {
     let resizeCheckTimer: number = NaN;
 
     function resizeHandler(): void {
-
-        let onSafari = !!window.navigator.userAgent.match(/Version\/\d+\.\d\x20Mobile\/\S+\x20Safari/);
-
-        resizeCheckTimer = NaN;
         UIStageInst.forEach(stage => {
-            if (onSafari) stage.offsetY = (document.body.clientHeight || document.documentElement.clientHeight) - window.innerHeight;
             stage.updateScreenSize();
         });
     }
 
     utils.DOMEventManager.inst.on('resize', function() {
-        if (isNaN(resizeCheckTimer)) {
-            resizeCheckTimer = window.setTimeout(resizeHandler, 300);
-        }
+        clearTimeout(resizeCheckTimer);
+        resizeCheckTimer = window.setTimeout(resizeHandler, 300);
     });
 }
