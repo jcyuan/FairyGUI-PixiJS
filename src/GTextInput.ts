@@ -25,6 +25,7 @@ namespace fgui {
             this.type = InputType.TEXT;
 
             this.on("removed", this.removed, this);
+            this.on("added", this.added, this);
             this.$util.initialize();
         }
 
@@ -44,6 +45,11 @@ namespace fgui {
         private removed(disp: PIXI.DisplayObject):void {
             if(this.$util)
                 this.$util.destroy();
+        }
+
+        private added(disp: PIXI.DisplayObject): void {
+            if (this.$util)
+                this.$util.initialize();
         }
 
         public requestFocus(): void {   //tab or call actively
@@ -151,6 +157,7 @@ namespace fgui {
         public dispose():void {
             super.dispose();
             this.off("removed", this.removed, this);
+            this.off("added", this.added, this);
             this.$util.destroy();
             this.$util = null;
         }

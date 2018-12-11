@@ -92,6 +92,7 @@ namespace fgui.utils {
                     this.$textField.$isTyping = true;
                     this.$textField.alpha = 0;
                     this.$textField.emit(FocusEvent.CHANGED, "focus", this.$textField);
+                    this.$textField.emit(TextEvent.FocusIn, this.$textField);
                 }
             }
             else if (type == "blur") {
@@ -102,6 +103,7 @@ namespace fgui.utils {
                     this.$textField.alpha = 1;
                     this.$input.$onBlur();
                     this.$textField.emit(FocusEvent.CHANGED, "blur", this.$textField);
+                    this.$textField.emit(TextEvent.FocusOut, this.$textField);
                 }
             }
         }
