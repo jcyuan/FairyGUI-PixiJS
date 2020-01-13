@@ -1,4 +1,4 @@
-### * Please be noticed that this project won't be maintained any longer due to our projects are changed to Phaser3, I'm sorry. 
+### * Please be noticed that this project won't be maintained any longer because our projects are changed to Phaser3, I'm sorry. 
 
 
 
